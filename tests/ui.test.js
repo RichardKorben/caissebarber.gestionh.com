@@ -41,8 +41,8 @@ ok($$(w, '.carte-article').length === 6, '6 services affichés', $$(w, '.carte-a
 ok(txt(w, '#compteur-categorie') === '6 prestations', 'compteur « 6 prestations »', txt(w, '#compteur-categorie'));
 ok(nbsp(txt(w, '.carte-article .carte-prix')) === '26 €', 'prix court « 26 € »', txt(w, '.carte-article .carte-prix'));
 ok(!$(w, '#ticket-vide').hidden && $(w, '#bouton-encaisser').disabled, 'ticket vide affiché, Encaisser désactivé');
-ok(!$(w, '#bloc-barbier').hidden, 'choix du barbier visible (2 membres)');
-ok($$(w, '#barbier option').length === 2, '2 barbiers dans la liste');
+ok(!$(w, '#bloc-barbier').hidden, 'choix du barbier visible (plusieurs membres)');
+ok($$(w, '#barbier option').length === D.membres.length, 'tous les membres actifs dans la liste (' + D.membres.length + ')');
 
 console.log('Ajout d\'articles');
 carte(w, 'Coupe homme').click(); carte(w, 'Coupe homme').click();
@@ -150,8 +150,10 @@ setTimeout(() => {
   $(w4, '#bouton-attente').click();
   setTimeout(() => {
     ok(!$(w4, '#verrou').hidden, 'réponse 423 → écran de verrouillage');
-    ok($$(w4, '#verrou-membres button').length === 2 && $$(w4, '#verrou-membres button')[0].disabled, 'membres listés, celui sans PIN grisé');
-    $$(w4, '#verrou-membres button')[1].click();
+    const boutonsMembres = $$(w4, '#verrou-membres button');
+    const sansPin = D.membres.filter(m => !m.aPin).map(m => m.prenom);
+    ok(boutonsMembres.length === D.membres.length && boutonsMembres.every(b => b.disabled === sansPin.some(p => b.textContent.startsWith(p))), 'membres listés, ceux sans PIN grisés');
+    boutonsMembres.find(b => b.textContent.startsWith('Yanis')).click();
     ok(!$(w4, '#verrou-pin').hidden && txt(w4, '#verrou-consigne') === 'Code de Yanis', 'pavé PIN de Yanis');
     ['4', '8', '2', '1'].forEach(t => $$(w4, '#verrou-pave button').find(b => b.textContent === t).click());
     ok(txt(w4, '#verrou-points') === '●●●●', '4 points affichés, chiffres masqués');
