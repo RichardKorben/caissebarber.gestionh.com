@@ -59,4 +59,4 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !Csrf::valide($_SERVER['
 }
 
 $parametres = (new Parametres($con, $tenant))->charger();
-$caisse = new Caisse($con, (int) $parametres['verrouillage_minutes']);
+$caisse = new Caisse($con, (int) $parametres['verrouillage_minutes'], $journal);

@@ -8,7 +8,7 @@ use function BarberPay\e;
 
 require __DIR__ . '/../app/admin.php';
 
-$equipe = new Equipe($con);
+$equipe = new Equipe($con, $journal, (int) $utilisateur['id']);
 $id = isset($_GET['id']) ? (int) $_GET['id'] : null;
 $membre = $id !== null ? $equipe->trouver($id) : null;
 if ($id !== null && $membre === null) {

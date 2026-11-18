@@ -8,7 +8,7 @@ use function BarberPay\e;
 
 require __DIR__ . '/../app/admin.php';
 
-$equipe = new Equipe($con);
+$equipe = new Equipe($con, $journal, (int) $utilisateur['id']);
 
 if (admin_post()) {
     $id = (int) ($_POST['id'] ?? 0);

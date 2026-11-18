@@ -11,7 +11,7 @@ use function BarberPay\e;
 
 require __DIR__ . '/../app/admin.php';
 
-$articles = new Articles($con);
+$articles = new Articles($con, $journal, (int) $utilisateur['id']);
 $type = ($_GET['type'] ?? '') === Articles::PRODUIT ? Articles::PRODUIT : Articles::SERVICE;
 $id = isset($_GET['id']) ? (int) $_GET['id'] : null;
 $article = $id !== null ? $articles->trouver($id) : null;

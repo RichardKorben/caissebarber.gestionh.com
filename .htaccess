@@ -26,6 +26,9 @@ DirectoryIndex index.php
     # Dossiers cachés (.git/…) : FilesMatch ne voit que le nom du fichier, pas le dossier.
     RewriteRule (^|/)\.(?!well-known/) - [F,L]
 
+    # Ticket en ligne (QR code) : /t/<jeton de 32 caractères>
+    RewriteRule ^t/([0-9a-f]{32})$ ticket.php?j=$1 [L,QSA]
+
     # Forcer HTTPS
     RewriteCond %{HTTPS} !=on
     RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]

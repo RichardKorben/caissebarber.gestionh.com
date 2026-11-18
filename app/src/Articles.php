@@ -18,8 +18,11 @@ final class Articles
     public const PRODUIT = 'produit';
     public const TYPES = [self::SERVICE => 'Services', self::PRODUIT => 'Produits'];
 
-    public function __construct(private readonly mysqli $con)
-    {
+    public function __construct(
+        private readonly mysqli $con,
+        private readonly ?Journal $journal = null,
+        private readonly ?int $operateurId = null,
+    ) {
     }
 
     /** @return list<array<string, mixed>> */
@@ -125,7 +128,8 @@ final class Articles
             return ['erreurs' => $erreurs, 'id' => $id];
         }
 
-        // TODO étape 3 : tracer les changements de prix dans le journal des événements.
+        $avant = $id !== null ? $this->trouver($id) : null;
+        $this->con->begin_transaction();
         try {
             if ($id === null) {
                 $suivant = $this->con->prepare('SELECT COALESCE(MAX(ordre), 0) + 1 FROM articles WHERE type = ?');
@@ -139,6 +143,7 @@ final class Articles
                 $requete->bind_param('ssiiiiisi', $type, $nom, $prix, $taux, $duree, $stock, $alerte, $codeBarre, $ordre);
                 $requete->execute();
                 $id = (int) $this->con->insert_id;
+                $this->journal?->ecrire(Journal::ARTICLE_CREE, ['article' => $id, 'type' => $type, 'nom' => $nom, 'prix' => $prix, 'taux_tva' => $taux], $this->operateurId, null, true);
             } else {
                 $requete = $this->con->prepare(
                     'UPDATE articles SET nom = ?, prix_ttc = ?, taux_tva = ?, duree_minutes = ?, stock = ?, stock_alerte = ?, code_barre = ?
@@ -146,8 +151,20 @@ final class Articles
                 );
                 $requete->bind_param('siiiiisis', $nom, $prix, $taux, $duree, $stock, $alerte, $codeBarre, $id, $type);
                 $requete->execute();
+                // Journal : seulement ce qui compte fiscalement (nom, prix, TVA) et le stock corrigé à la main.
+                $changements = [];
+                foreach (['nom' => $nom, 'prix_ttc' => $prix, 'taux_tva' => $taux, 'stock' => $stock] as $champ => $valeur) {
+                    if ($avant !== null && $avant[$champ] !== $valeur) {
+                        $changements[$champ] = ['avant' => $avant[$champ], 'apres' => $valeur];
+                    }
+                }
+                if ($changements) {
+                    $this->journal?->ecrire(Journal::ARTICLE_MODIFIE, ['article' => $id, 'nom' => $nom, 'changements' => $changements], $this->operateurId, null, true);
+                }
             }
+            $this->con->commit();
         } catch (mysqli_sql_exception $erreur) {
+            $this->con->rollback();
             if ($erreur->getCode() === 1062) { // doublon : code-barres déjà utilisé
                 return ['erreurs' => ['code_barre' => 'Ce code-barres est déjà utilisé par un autre produit.'], 'id' => $id];
             }
@@ -158,9 +175,16 @@ final class Articles
 
     public function basculerActif(int $id): void
     {
+        $article = $this->trouver($id);
+        if ($article === null) {
+            return;
+        }
+        $this->con->begin_transaction();
         $requete = $this->con->prepare('UPDATE articles SET actif = 1 - actif WHERE id = ?');
         $requete->bind_param('i', $id);
         $requete->execute();
+        $this->journal?->ecrire(Journal::ARTICLE_ACTIVATION, ['article' => $id, 'nom' => $article['nom'], 'actif' => !$article['actif']], $this->operateurId, null, true);
+        $this->con->commit();
     }
 
     /** Monte (-1) ou descend (+1) un article d'un cran parmi les articles actifs du même type. */

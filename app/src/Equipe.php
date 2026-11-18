@@ -21,8 +21,11 @@ final class Equipe
     /** Couleurs proposées pour repérer chaque barbier (pas de rouge/bleu : réservés au poteau). */
     public const COULEURS = ['#C9A44C', '#8FBF7F', '#E08A5E', '#B48EDB', '#5FB8B2', '#D97FA6', '#A0A0A0', '#E3D26F'];
 
-    public function __construct(private readonly mysqli $con)
-    {
+    public function __construct(
+        private readonly mysqli $con,
+        private readonly ?Journal $journal = null,
+        private readonly ?int $operateurId = null,
+    ) {
     }
 
     /** @return list<array<string, mixed>> */
@@ -141,6 +144,11 @@ final class Equipe
             }
             throw $erreur;
         }
+        $this->journal?->ecrire(Journal::EQUIPE_MODIFIEE, [
+            'membre' => $id, 'prenom' => $prenom, 'role' => $role,
+            'action' => $existant === null ? 'ajout' : 'modification',
+            'pin_change' => $pin !== null, 'mot_de_passe_change' => $motDePasse !== null,
+        ], $this->operateurId);
         return ['erreurs' => [], 'id' => $id];
     }
 
@@ -160,6 +168,7 @@ final class Equipe
         $requete = $this->con->prepare('UPDATE utilisateurs SET actif = 1 - actif WHERE id = ?');
         $requete->bind_param('i', $id);
         $requete->execute();
+        $this->journal?->ecrire(Journal::EQUIPE_MODIFIEE, ['membre' => $id, 'prenom' => $membre['prenom'], 'action' => $membre['actif'] ? 'desactivation' : 'activation'], $this->operateurId);
         return null;
     }
 
@@ -168,6 +177,7 @@ final class Equipe
         $requete = $this->con->prepare('UPDATE utilisateurs SET pin = NULL WHERE id = ?');
         $requete->bind_param('i', $id);
         $requete->execute();
+        $this->journal?->ecrire(Journal::EQUIPE_MODIFIEE, ['membre' => $id, 'action' => 'pin_supprime'], $this->operateurId);
     }
 
     private function nombreGerantsActifs(): int

@@ -17,7 +17,7 @@ final class Auth
     private const MAX_ECHECS_IP = 10;
     private const FENETRE = 15 * 60;
 
-    public function __construct(private readonly mysqli $con)
+    public function __construct(private readonly mysqli $con, private readonly ?Journal $journal = null)
     {
     }
 
@@ -74,6 +74,7 @@ final class Auth
         // Le gérant vient de prouver son identité : la caisse s'ouvre à son nom.
         $_SESSION['operateur_id'] = (int) $compte['id'];
         $_SESSION['operateur_actif_le'] = time();
+        $this->journal?->ecrire(Journal::CONNEXION, ['mode' => 'e-mail'], (int) $compte['id']);
         return ['ok' => true];
     }
 

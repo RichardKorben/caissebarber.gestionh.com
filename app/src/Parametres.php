@@ -13,8 +13,12 @@ final class Parametres
     /** Choix proposés pour le verrouillage automatique de la caisse (0 = jamais). */
     public const DELAIS_VERROUILLAGE = [0, 2, 5, 10, 15, 30, 60];
 
-    public function __construct(private readonly mysqli $con, private readonly Tenant $tenant)
-    {
+    public function __construct(
+        private readonly mysqli $con,
+        private readonly Tenant $tenant,
+        private readonly ?Journal $journal = null,
+        private readonly ?int $operateurId = null,
+    ) {
     }
 
     /** @return array<string, mixed> */
@@ -96,9 +100,9 @@ final class Parametres
             return $erreurs;
         }
 
-        $this->charger();
-        // TODO étape 3 : tracer le changement de régime dans le journal des événements et ne l'appliquer
-        // qu'après la clôture du jour.
+        $avant = $this->charger();
+        // TODO étape 4 (clôtures) : n'appliquer un changement de régime de TVA qu'après la clôture du jour.
+        $this->con->begin_transaction();
         $requete = $this->con->prepare(
             'UPDATE parametres SET nom_salon = ?, raison_sociale = ?, adresse = ?, code_postal = ?, ville = ?, telephone = ?,
                 siret = ?, tva_intracom = ?, regime_tva = ?, seuil_services = ?, seuil_services_majore = ?,
@@ -113,6 +117,21 @@ final class Parametres
             $v['mention_ticket'], $v['animation_poteau'], $v['verrouillage_minutes']
         );
         $requete->execute();
+        $apres = ['nom_salon' => $v['nom_salon'], 'raison_sociale' => $v['raison_sociale'], 'adresse' => $v['adresse'],
+            'code_postal' => $v['code_postal'], 'ville' => $v['ville'], 'siret' => $v['siret'], 'tva_intracom' => $v['tva_intracom']] + $seuils;
+        $changements = [];
+        foreach ($apres as $champ => $valeur) {
+            if ($avant[$champ] !== $valeur) {
+                $changements[$champ] = ['avant' => $avant[$champ], 'apres' => $valeur];
+            }
+        }
+        if ($avant['regime_tva'] !== $v['regime_tva']) {
+            $this->journal?->ecrire(Journal::REGIME_TVA_MODIFIE, ['avant' => $avant['regime_tva'], 'apres' => $v['regime_tva']], $this->operateurId, null, true);
+        }
+        if ($changements) {
+            $this->journal?->ecrire(Journal::PARAMETRES_MODIFIES, ['changements' => $changements], $this->operateurId, null, true);
+        }
+        $this->con->commit();
 
         // Le nom affiché sur la page de connexion vient du registre commun : on le garde synchronisé.
         $maj = $commune->prepare('UPDATE barberpay_comptes SET nom_salon = ? WHERE id = ?');

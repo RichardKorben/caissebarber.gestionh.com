@@ -3,12 +3,14 @@
  * BarberPay — démarrage d'une page web.
  *
  * Reconnaît le barber d'après l'adresse, ouvre sa base, démarre la session.
- * Après inclusion : $tenant (Tenant), $con (mysqli, base du barber), $auth (Auth).
+ * Mettre $pagePublique = true avant l'inclusion pour une page sans session (ticket en ligne).
+ * Après inclusion : $tenant (Tenant), $con (mysqli, base du barber), $journal (Journal), $auth (Auth).
  */
 declare(strict_types=1);
 
 use BarberPay\Auth;
 use BarberPay\Database;
+use BarberPay\Journal;
 use BarberPay\Session;
 use BarberPay\Tenant;
 
@@ -45,8 +47,11 @@ try {
     }
 
     $con = Database::barber($tenant->base);
-    Session::demarrer($tenant);
-    $auth = new Auth($con);
+    if (empty($pagePublique)) {
+        Session::demarrer($tenant);
+    }
+    $journal = new Journal($con, $tenant);
+    $auth = new Auth($con, $journal);
 } catch (Throwable $erreur) {
     error_log('BarberPay : ' . $erreur->getMessage() . ' (' . $erreur->getFile() . ':' . $erreur->getLine() . ')');
     bp_page_erreur(500, 'Service indisponible', 'Une erreur est survenue. Réessayez dans un instant.');

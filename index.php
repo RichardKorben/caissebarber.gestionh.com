@@ -207,6 +207,9 @@ function icone(string $nom, int $taille = 24): string
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script>window.BARBERPAY = <?= json_encode($donnees, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;</script>
+<?php if (is_file(__DIR__ . '/public/js/vendor/qrcode-generator-1.4.4.min.js')): ?>
+<script src="/public/js/vendor/qrcode-generator-1.4.4.min.js"></script>
+<?php endif; ?>
 <script src="/public/js/calcul.js?v=<?= e(BarberPay\VERSION) ?>"></script>
 <script src="/public/js/caisse.js?v=<?= e(BarberPay\VERSION) ?>"></script>
 </body>

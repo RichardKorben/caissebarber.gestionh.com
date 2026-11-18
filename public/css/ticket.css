@@ -1,0 +1,63 @@
+/* BarberPay — ticket : écran (lien du QR code) et impression sur rouleau de 80 mm. */
+@font-face { font-family: "Inter"; font-weight: 400; font-display: swap; src: url("../fonts/inter-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 600; font-display: swap; src: url("../fonts/inter-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 700; font-display: swap; src: url("../fonts/inter-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Oswald"; font-weight: 600; font-display: swap; src: url("../fonts/oswald-latin-600-normal.woff2") format("woff2"); }
+
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: #121212; color: #111; font: 14px/1.4 "Inter", system-ui, sans-serif; padding: 24px 16px; }
+.visuellement-cache { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+.recu { max-width: 380px; margin: 0 auto; background: #fff; border-radius: 16px; overflow: hidden; padding: 0 20px 18px; }
+.liseret { height: 6px; margin: 0 -20px 18px; background: repeating-linear-gradient(-45deg, #C8102E 0 10px, #fff 10px 16px, #1D4E9E 16px 26px, #fff 26px 32px); }
+.salon { text-align: center; }
+.salon h1 { font-family: "Oswald", sans-serif; font-weight: 600; font-size: 24px; letter-spacing: 1px; text-transform: uppercase; margin: 0 0 4px; }
+.salon p { margin: 0; color: #444; font-size: 13px; }
+.identite { text-align: center; margin: 14px 0 10px; padding: 10px 0; border-top: 1px dashed #bbb; border-bottom: 1px dashed #bbb; }
+.identite p { margin: 0; font-size: 13px; color: #444; }
+.identite .titre { font-weight: 700; font-size: 15px; color: #111; text-transform: uppercase; letter-spacing: .5px; }
+.bandeau { text-align: center; font-weight: 700; border: 2px solid #111; padding: 6px; margin: 10px 0; text-transform: uppercase; font-size: 13px; }
+
+table { width: 100%; border-collapse: collapse; }
+.lignes th { font-size: 11px; text-transform: uppercase; color: #666; text-align: left; padding: 4px 0; border-bottom: 1px solid #ddd; }
+.lignes td { padding: 7px 0; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+.libelle { display: block; font-weight: 600; }
+.detail { display: block; font-size: 12px; color: #666; }
+.montant, .lignes th.montant, .tva th.montant { text-align: right; white-space: nowrap; }
+
+.totaux, .paiements { margin: 10px 0 0; }
+.totaux div, .paiements div { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; }
+.totaux dt, .totaux dd, .paiements dt, .paiements dd { margin: 0; }
+.totaux .total { font-family: "Oswald", sans-serif; font-weight: 600; font-size: 22px; border-top: 2px solid #111; margin-top: 4px; padding-top: 6px; }
+.paiements { border-top: 1px dashed #bbb; padding-top: 6px; }
+.paiements .secondaire { color: #666; font-size: 13px; padding-left: 12px; }
+
+.tva { margin-top: 10px; font-size: 12px; }
+.tva caption { text-align: left; font-size: 11px; text-transform: uppercase; color: #666; padding-bottom: 2px; }
+.tva th { font-size: 11px; color: #666; text-align: left; font-weight: 600; }
+.tva td, .tva th { padding: 2px 0; }
+.mention { font-size: 12px; text-align: center; margin: 10px 0 0; }
+
+.pied { text-align: center; margin-top: 14px; padding-top: 10px; border-top: 1px dashed #bbb; font-size: 13px; }
+.pied p { margin: 0 0 4px; }
+.merci { font-weight: 600; }
+.technique { color: #888; font-size: 11px; margin-top: 8px !important; }
+
+.actions { text-align: center; margin: 18px 0 0; }
+.actions button { min-height: 48px; padding: 0 20px; border-radius: 12px; border: 0; background: #C9A44C; color: #0A0A0A; font: 600 15px "Inter", sans-serif; cursor: pointer; }
+
+/* ── Impression : rouleau thermique 80 mm (zone imprimable ≈ 72 mm) ── */
+@media print {
+  /* La longueur du rouleau est gérée par le pilote de l'imprimante thermique (papier 80 mm). */
+  @page { margin: 0; }
+  body { background: #fff; padding: 0; font-size: 11px; }
+  .recu { max-width: 72mm; border-radius: 0; padding: 2mm 0; margin: 0 auto; }
+  .liseret, .actions { display: none; }
+  .salon h1 { font-size: 16px; }
+  .salon p, .identite p, .detail, .pied, .tva, .mention { font-size: 10px; color: #000; }
+  .totaux .total { font-size: 15px; }
+  .lignes td { border-bottom-color: #ccc; }
+  .technique { color: #000; }
+  .paiements .secondaire { font-size: 10px; color: #000; }
+}
+body.impression { background: #fff; }

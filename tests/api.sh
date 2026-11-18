@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# Tests de bout en bout sur le site de développement (https://caissebarber.gestionh.com, base BARBER_dev).
+# Écrit de vrais tickets de test dans BARBER_dev.
+# Usage : BP_TEST_EMAIL=… BP_TEST_MDP=… tests/api.sh <dossier temporaire>
+set -u
+U=${BP_TEST_URL:-https://caissebarber.gestionh.com}
+TMP=$1
+J=$TMP/cookies.txt
+: > "$J"
+OK=0; KO=0
+ok()  { if [ "$1" = "$2" ]; then OK=$((OK+1)); echo "  OK    $3"; else KO=$((KO+1)); echo "  ÉCHEC $3 → obtenu [$1], attendu [$2]"; fi; }
+has() { if printf '%s' "$1" | grep -q -- "$2"; then OK=$((OK+1)); echo "  OK    $3"; else KO=$((KO+1)); echo "  ÉCHEC $3 (absent : $2) [$(printf '%s' "$1" | head -c 200)]"; fi; }
+
+T=$(curl -s -c "$J" -b "$J" "$U/login.php" | grep -oP 'name="csrf" value="\K[^"]+')
+curl -s -c "$J" -b "$J" -o /dev/null --data-urlencode "csrf=$T" --data-urlencode "email=$BP_TEST_EMAIL" --data-urlencode "mot_de_passe=$BP_TEST_MDP" "$U/login.php"
+PAGE=$(curl -s -b "$J" "$U/")
+printf '%s' "$PAGE" > "$TMP/page.html"
+CSRF=$(printf '%s' "$PAGE" | grep -oP '<meta name="csrf" content="\K[^"]+')
+A() { curl -s -b "$J" -c "$J" -H "X-CSRF-Token: $CSRF" -H 'Content-Type: application/json' -w ' [%{http_code}]' "$U/api/caisse.php?action=$1" ${2:+--data "$2"}; }
+
+echo "Accès"
+has "$PAGE" 'window.BARBERPAY' "page de caisse (connecté)"
+ok "$(curl -s -o /dev/null -w '%{http_code}' "$U/api/caisse.php?action=etat")" "401" "API sans session → 401"
+ok "$(curl -s -b "$J" -o /dev/null -w '%{http_code}' -H 'Content-Type: application/json' --data '{}' "$U/api/caisse.php?action=verrouiller")" "403" "POST sans jeton CSRF → 403"
+for chemin in app/bootstrap.php app/src/Ventes.php app/migrations/tenant/0004_fiscal.sql docs/PLAN-V1-BarberPay.md tests/api.sh .git/config; do
+  ok "$(curl -s -o /dev/null -w '%{http_code}' "$U/$chemin")" "403" "fichier interne bloqué : $chemin"
+done
+
+GID=$(A etat | grep -oP '"operateur":\{"id":\K\d+')
+ART=$(printf '%s' "$PAGE" | grep -oP '"id":\K\d+(?=,"type":"service")' | head -1)
+PRIX=$(printf '%s' "$PAGE" | grep -oP '"id":'"$ART"',"type":"service","nom":"[^"]*","prix":\K\d+')
+echo "Encaissement (article $ART à $PRIX centimes)"
+TK='{"barbierId":'$GID',"remise":null,"lignes":[{"articleId":'$ART',"type":"service","nom":"x","prix":'$PRIX',"taux":2000,"quantite":1,"barbierId":'$GID',"remise":null}]}'
+CLE=$(cat /proc/sys/kernel/random/uuid)
+R=$(A encaisser '{"ticket":'"$TK"',"paiements":[{"moyen":"cb","montant":'$PRIX'}],"totalAffiche":'$PRIX',"cle":"'$CLE'"}')
+has "$R" '"ok":true' "encaissement par carte"
+ID=$(printf '%s' "$R" | grep -oP '"id":\K\d+'); JETON=$(printf '%s' "$R" | grep -oP '"jeton":"\K[0-9a-f]+')
+has "$(A encaisser '{"ticket":'"$TK"',"paiements":[{"moyen":"cb","montant":'$PRIX'}],"totalAffiche":'$PRIX',"cle":"'$CLE'"}')" '"deja":true' "même clé renvoyée : pas de second ticket"
+has "$(A encaisser '{"ticket":'"$TK"',"paiements":[{"moyen":"cb","montant":1}],"totalAffiche":1}')" '\[409\]' "total affiché faux → 409"
+has "$(A encaisser '{"ticket":'"$TK"',"paiements":[{"moyen":"especes","montant":'$PRIX',"recu":'$((PRIX+1000))'}],"totalAffiche":'$PRIX'}')" '"rendu":1000' "espèces : 10 € rendus"
+echo "Ticket en ligne"
+ok "$(curl -s -o /dev/null -w '%{http_code}' "$U/t/$JETON")" "200" "ticket consultable par son lien"
+ok "$(curl -s -D - -o /dev/null "$U/t/$JETON" | grep -ci '^set-cookie')" "0" "aucun cookie posé au client"
+ok "$(curl -s -o /dev/null -w '%{http_code}' "$U/t/0123456789abcdef0123456789abcdef")" "404" "lien inconnu → 404"
+has "$(curl -s "$U/t/$JETON")" 'Signature' "mentions techniques (version, signature) sur le ticket"
+echo "Annulation"
+R=$(A annuler '{"ticketId":'$ID',"motif":"Test automatique"}')
+has "$R" '"ok":true' "annulation par le gérant"
+has "$(A annuler '{"ticketId":'$ID',"motif":"encore"}')" 'déjà été annulé' "deuxième annulation refusée"
+has "$(curl -s "$U/t/$JETON")" 'Ticket annulé par le ticket' "le ticket d'origine affiche son annulation"
+echo "Tickets en attente"
+R=$(A attente_mettre '{"ticket":'"$TK"'}'); AID=$(printf '%s' "$R" | grep -oP '"id":\K\d+')
+has "$R" '"ok":true' "mise en attente"
+has "$(A attente_reprendre '{"id":'$AID'}')" '"ok":true' "reprise"
+has "$(A attente_reprendre '{"id":'$AID'}')" '\[404\]' "reprise en double → 404"
+echo "Verrouillage"
+has "$(A verrouiller '{}')" '"ok":true' "verrouiller"
+has "$(A attente_liste)" '\[423\]' "caisse verrouillée → 423"
+has "$(A encaisser '{"ticket":'"$TK"',"paiements":[{"moyen":"cb","montant":'$PRIX'}],"totalAffiche":'$PRIX'}')" '\[423\]' "pas d'encaissement caisse verrouillée"
+
+echo
+echo "$((OK+KO)) tests, $OK réussis$([ $KO -gt 0 ] && echo ", $KO ÉCHEC(S)")"
+[ $KO -eq 0 ]

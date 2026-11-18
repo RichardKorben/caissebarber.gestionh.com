@@ -6,6 +6,7 @@
  *   barberpay migrer [--compte=<sous-domaine>]
  *   barberpay comptes
  *   barberpay compte:ajouter --sous-domaine=<x> --base=<BASE> --salon="<nom>" [--creer-base] [--statut=actif]
+ *   barberpay integrite --compte=<sous-domaine>     contrôle des tickets et du journal (chaînage, signatures)
  *   barberpay gerant:creer --compte=<sous-domaine> --email=<e-mail> --prenom=<prénom> [--nom=<nom>]
  *       (mot de passe lu dans la variable d'environnement BP_MOT_DE_PASSE, sinon généré et affiché une fois)
  */
@@ -166,6 +167,15 @@ try {
                 echo "Mot de passe généré (affiché une seule fois) : {$motDePasse}\n";
             }
             exit(0);
+
+        case 'integrite':
+            $tenant = bp_compte((string) bp_option($options, 'compte'));
+            $resultat = (new BarberPay\Integrite(Database::barber($tenant->base), $tenant))->verifier();
+            echo ($resultat['ok'] ? 'INTÈGRE' : 'ANOMALIES') . " — {$resultat['tickets']} ticket(s), {$resultat['evenements']} événement(s) contrôlés\n";
+            foreach ($resultat['erreurs'] as $erreur) {
+                echo '  - ' . $erreur . "\n";
+            }
+            exit($resultat['ok'] ? 0 : 3);
 
         default:
             $aide = file_get_contents(__FILE__);

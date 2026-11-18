@@ -1,0 +1,8 @@
+{
+  "name": "barberpay-tests",
+  "private": true,
+  "description": "Outils des tests BarberPay (navigateur simulé). Installer avec : npm install --prefix tests",
+  "devDependencies": {
+    "jsdom": "24.1.3"
+  }
+}

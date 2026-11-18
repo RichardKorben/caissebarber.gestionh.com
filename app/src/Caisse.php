@@ -23,6 +23,7 @@ final class Caisse
     public function __construct(
         private readonly mysqli $con,
         private readonly int $minutesInactivite,
+        private readonly ?Journal $journal = null,
     ) {
     }
 
@@ -95,6 +96,7 @@ final class Caisse
         }
         $this->effacerEchecs($cle);
         $this->definirOperateur((int) $membre['id']);
+        $this->journal?->ecrire(Journal::DEVERROUILLAGE, ['prenom' => $membre['prenom']], (int) $membre['id']);
         unset($membre['pin']);
         return ['ok' => true, 'operateur' => $membre];
     }

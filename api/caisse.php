@@ -10,10 +10,14 @@
  *   POST ?action=attente_mettre       {ticket}
  *   POST ?action=attente_reprendre    {id}
  *   POST ?action=attente_supprimer    {id}
+ *   POST ?action=encaisser            {ticket, paiements:[{moyen, montant, recu?}], totalAffiche, cle}
+ *   POST ?action=annuler              {ticketId, motif}   (gérant)
  */
 declare(strict_types=1);
 
+use BarberPay\ConflitCatalogue;
 use BarberPay\TicketsAttente;
+use BarberPay\Ventes;
 
 require __DIR__ . '/../app/api.php';
 
@@ -79,9 +83,39 @@ try {
             $attente->supprimer((int) (api_corps()['id'] ?? 0));
             api_reponse(['ok' => true, 'attente' => $attente->nombre()]);
 
+        case 'encaisser':
+            $exigerPost();
+            $caisse->toucher();
+            $corps = api_corps();
+            $totalAffiche = $corps['totalAffiche'] ?? null;
+            $cle = $corps['cle'] ?? null;
+            $vente = (new Ventes($con, $tenant, $journal))->encaisser(
+                $corps['ticket'] ?? null,
+                $corps['paiements'] ?? null,
+                is_int($totalAffiche) ? $totalAffiche : null,
+                is_string($cle) ? $cle : null,
+                (int) $operateur['id'],
+            );
+            api_reponse(['ok' => true, 'vente' => $vente + [
+                'numeroAffiche' => Ventes::numeroAffiche($vente['numero']),
+                'url' => 'https://' . preg_replace('/:\d+$/', '', strtolower((string) $_SERVER['HTTP_HOST'])) . '/t/' . $vente['jeton'],
+            ]]);
+
+        case 'annuler':
+            $exigerPost();
+            if ($operateur['role'] !== 'gerant') {
+                api_erreur('Seul un gérant peut annuler un ticket.', 403);
+            }
+            $caisse->toucher();
+            $corps = api_corps();
+            $annulation = (new Ventes($con, $tenant, $journal))->annuler((int) ($corps['ticketId'] ?? 0), (int) $operateur['id'], (string) ($corps['motif'] ?? ''));
+            api_reponse(['ok' => true, 'annulation' => $annulation + ['numeroAffiche' => Ventes::numeroAffiche($annulation['numero'])]]);
+
         default:
             api_erreur('Action inconnue.', 404);
     }
+} catch (ConflitCatalogue $erreur) {
+    api_erreur($erreur->getMessage(), 409);
 } catch (InvalidArgumentException $erreur) {
     api_erreur($erreur->getMessage());
 }

@@ -10,7 +10,7 @@ use function BarberPay\e;
 
 require __DIR__ . '/../app/admin.php';
 
-$parametres = new Parametres($con, $tenant);
+$parametres = new Parametres($con, $tenant, $journal, (int) $utilisateur['id']);
 $p = $parametres->charger();
 $erreurs = [];
 $valeurs = [

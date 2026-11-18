@@ -583,14 +583,200 @@
     }, function (e) { toast(e.message, true); listeAttente(); });
   }
 
-  // ── Encaissement (étape 3) ───────────────────────────────────────────
-  function encaisser() {
-    var c = calculer();
-    ouvrir('Encaissement', [
-      el('p', { texte: 'Total à encaisser : ' + C.format(c.total) + '.' }),
-      el('p', { texte: 'L\'encaissement (carte, espèces, plusieurs moyens de paiement) et le ticket arrivent à l\'étape 3 du développement. Le ticket reste en place.' }),
-      actions([bouton('Fermer', 'principal', fermer)])
-    ]);
+  // ── Encaissement ─────────────────────────────────────────────────────
+  var MOYENS = [
+    { code: 'cb', nom: 'Carte bancaire' },
+    { code: 'especes', nom: 'Espèces' },
+    { code: 'cheque', nom: 'Chèque' },
+    { code: 'autre', nom: 'Autre' }
+  ];
+  function nomMoyen(code) { return MOYENS.filter(function (m) { return m.code === code; })[0].nom; }
+
+  function uuid() {
+    if (window.crypto && crypto.randomUUID) { return crypto.randomUUID(); }
+    var o = new Uint8Array(16); crypto.getRandomValues(o);
+    o[6] = (o[6] & 15) | 64; o[8] = (o[8] & 63) | 128;
+    var h = Array.prototype.map.call(o, function (b) { return (b + 256).toString(16).slice(1); }).join('');
+    return h.slice(0, 8) + '-' + h.slice(8, 12) + '-' + h.slice(12, 16) + '-' + h.slice(16, 20) + '-' + h.slice(20);
+  }
+
+  /** Montants proposés pour les espèces : l'appoint et les billets au-dessus. */
+  function suggestionsEspeces(total) {
+    var s = [total];
+    [500, 1000, 2000, 5000, 10000].forEach(function (pas) {
+      var v = Math.ceil(total / pas) * pas;
+      if (v > total && s.indexOf(v) === -1) { s.push(v); }
+    });
+    return s.slice(0, 4);
+  }
+
+  function encaisser(partiel) {
+    var total = calculer().total;
+    var paiements = [];
+    var cle = uuid(); // la même clé si on réessaie : jamais de double encaissement
+    var envoi = false;
+
+    function reste() { return total - paiements.reduce(function (s, p) { return s + p.montant; }, 0); }
+
+    function vueChoix() {
+      var r = reste();
+      var contenu = [el('p', { classe: 'encaisse-total', texte: C.format(total) })];
+      if (partiel || paiements.length) {
+        var liste = el('ul', { classe: 'liste-attente' });
+        paiements.forEach(function (p, i) {
+          liste.appendChild(el('li', {}, [
+            el('div', { classe: 'infos' }, [el('strong', { texte: nomMoyen(p.moyen) }), p.rendu ? el('span', { texte: 'reçu ' + C.format(p.recu) + ' · rendu ' + C.format(p.rendu) }) : null]),
+            el('span', { classe: 'montant', texte: C.format(p.montant) }),
+            el('button', { type: 'button', classe: 'bouton-f danger', 'aria-label': 'Retirer le paiement ' + nomMoyen(p.moyen), texte: '✕', onclick: function () { paiements.splice(i, 1); vueChoix(); } })
+          ]));
+        });
+        if (paiements.length) { contenu.push(liste); }
+        contenu.push(el('p', { classe: 'encaisse-reste', texte: r > 0 ? 'Reste à payer : ' + C.format(r) : 'Tout est réglé.' }));
+      }
+      if (total === 0) {
+        contenu.push(el('p', { texte: 'Ticket entièrement offert : aucun paiement à encaisser.' }));
+        contenu.push(actions([bouton('Annuler', '', fermer), bouton('Valider le ticket', 'principal', valider)]));
+      } else if (r > 0) {
+        var grille = el('div', { classe: 'moyens' });
+        MOYENS.forEach(function (m) {
+          grille.appendChild(el('button', { type: 'button', classe: 'bouton-moyen', texte: m.nom, onclick: function () {
+            if (m.code === 'especes') { vueEspeces(); }
+            else if (partiel) { vueMontant(m.code); }
+            else { paiements = [{ moyen: m.code, montant: total }]; confirmerSans(m.code); }
+          } }));
+        });
+        contenu.push(grille, actions([bouton('Annuler', '', fermer)]));
+      } else {
+        contenu.push(actions([bouton('Annuler', '', fermer), bouton('Valider l\'encaissement', 'principal', valider)]));
+      }
+      ouvrir(partiel ? 'Paiement en plusieurs fois' : 'Encaissement', contenu);
+    }
+
+    /** Carte, chèque, autre (paiement complet) : le terminal de paiement n'est pas relié, on confirme. */
+    function confirmerSans(moyen) {
+      ouvrir('Encaissement', [
+        el('p', { classe: 'encaisse-total', texte: C.format(total) }),
+        el('p', { texte: moyen === 'cb' ? 'Encaissez ' + C.format(total) + ' sur le terminal de paiement, puis validez une fois le paiement accepté.' : 'Paiement par ' + nomMoyen(moyen).toLowerCase() + ' de ' + C.format(total) + '.' }),
+        actions([bouton('Retour', '', function () { paiements = []; vueChoix(); }), bouton(moyen === 'cb' ? 'Paiement accepté' : 'Valider', 'principal', valider)])
+      ]);
+    }
+
+    function vueEspeces() {
+      var du = reste();
+      var recu = null;
+      var affichage = el('output', { classe: 'affichage', 'aria-live': 'polite' });
+      var rendu = el('p', { classe: 'encaisse-rendu', 'aria-live': 'polite' });
+      var ok = bouton(partiel ? 'Ajouter' : 'Valider', 'principal', function () {
+        if (recu === null || recu <= 0) { return; }
+        var montant = Math.min(recu, du);
+        paiements.push({ moyen: 'especes', montant: montant, recu: recu, rendu: recu - montant });
+        if (partiel) { vueChoix(); } else { valider(); } // en plusieurs fois : récapitulatif avant de valider
+      });
+      function maj(v) {
+        recu = centiemes(v || '0');
+        affichage.textContent = C.format(recu || 0);
+        var manque = !recu || (!partiel && recu < du);
+        ok.disabled = manque;
+        if (!recu) { rendu.textContent = 'Somme reçue du client'; }
+        else if (recu >= du) { rendu.textContent = recu > du ? 'À rendre : ' + C.format(recu - du) : 'Compte juste'; }
+        else { rendu.textContent = partiel ? 'Reste ' + C.format(du - recu) + ' à payer autrement' : 'Il manque ' + C.format(du - recu); }
+      }
+      var p = pave(maj, 8);
+      var raccourcis = el('div', { classe: 'raccourcis' });
+      suggestionsEspeces(du).forEach(function (v, i) {
+        raccourcis.appendChild(el('button', { type: 'button', texte: i === 0 ? 'Appoint ' + C.formatCourt(v) : C.formatCourt(v), onclick: function () { p.definir(String(v / 100).replace('.', ',')); } }));
+      });
+      ouvrir('Espèces — ' + C.format(du), [affichage, rendu, raccourcis, p.element, actions([bouton('Retour', '', vueChoix), ok])]);
+      maj('');
+    }
+
+    function vueMontant(moyen) {
+      var du = reste();
+      var montant = du;
+      var affichage = el('output', { classe: 'affichage', 'aria-live': 'polite' });
+      var erreur = el('p', { classe: 'verrou-erreur', role: 'alert' });
+      var p = pave(function (v) { montant = centiemes(v || '0'); affichage.textContent = C.format(montant || 0); erreur.textContent = ''; }, 8);
+      ouvrir(nomMoyen(moyen) + ' — montant', [
+        el('p', { texte: 'Reste à payer : ' + C.format(du) }), affichage, erreur, p.element,
+        actions([bouton('Retour', '', vueChoix), bouton('Ajouter', 'principal', function () {
+          if (!montant) { erreur.textContent = 'Saisissez un montant.'; return; }
+          if (montant > du) { erreur.textContent = 'Plus que le reste à payer (' + C.format(du) + ').'; return; }
+          paiements.push({ moyen: moyen, montant: montant });
+          vueChoix();
+        })])
+      ]);
+      p.definir(String(du / 100).replace('.', ','));
+    }
+
+    function valider() {
+      if (envoi) { return; }
+      envoi = true;
+      ouvrir('Encaissement', [el('p', { classe: 'encaisse-total', texte: C.format(total) }), el('p', { texte: 'Enregistrement du ticket…' })]);
+      var vendus = etat.ticket.lignes.filter(function (l) { return l.type === 'produit' && l.articleId; })
+        .map(function (l) { return { id: l.articleId, quantite: l.quantite }; });
+      api('encaisser', {
+        ticket: ticketPourServeur(),
+        paiements: paiements.map(function (p) { var x = { moyen: p.moyen, montant: p.montant }; if (p.recu !== undefined) { x.recu = p.recu; } return x; }),
+        totalAffiche: total,
+        cle: cle
+      }).then(function (r) {
+        // Le ticket est enregistré : on vide la caisse et on met le stock affiché à jour.
+        vendus.forEach(function (v) { D.articles.forEach(function (a) { if (a.id === v.id && a.stock !== null) { a.stock -= v.quantite; } }); });
+        vider();
+        changer();
+        succes(r.vente);
+      }, function (e) {
+        envoi = false;
+        var contenu = [el('p', { classe: 'verrou-erreur', role: 'alert', texte: e.message })];
+        if (/rechargez/i.test(e.message)) {
+          contenu.push(actions([bouton('Fermer', '', fermer), bouton('Recharger la page', 'principal', function () { window.location.reload(); })]));
+        } else {
+          contenu.push(el('p', { texte: 'Le ticket n\'a pas été enregistré. Vous pouvez réessayer sans risque de double encaissement.' }));
+          contenu.push(actions([bouton('Fermer', '', fermer), bouton('Réessayer', 'principal', valider)]));
+        }
+        ouvrir('Encaissement impossible', contenu);
+      });
+    }
+
+    function succes(v) {
+      var qr = el('div', { classe: 'qr', 'aria-hidden': 'true' });
+      if (window.qrcode) {
+        var q = window.qrcode(0, 'M'); q.addData(v.url); q.make();
+        qr.innerHTML = q.createSvgTag({ cellSize: 5, margin: 2, scalable: true }); // SVG produit par la bibliothèque, sans donnée saisie
+      } else {
+        qr.appendChild(el('p', { classe: 'qr-lien', texte: v.url }));
+      }
+      var contenu = [
+        el('p', { classe: 'encaisse-numero', texte: 'Ticket n° ' + v.numeroAffiche + (v.deja ? ' (déjà enregistré)' : '') }),
+        v.rendu ? el('p', { classe: 'encaisse-rendu grand', texte: 'À rendre : ' + C.format(v.rendu) }) : null,
+        qr,
+        el('p', { classe: 'qr-texte', texte: window.qrcode ? 'Le client scanne ce code pour récupérer son ticket.' : 'Lien du ticket en ligne, à transmettre au client.' }),
+        actions([
+          bouton('Imprimer', '', function () { imprimer(v.jeton); }),
+          bouton('Nouveau ticket', 'principal', fermer)
+        ])
+      ];
+      ouvrir('Encaissé ✓', contenu);
+    }
+
+    vueChoix();
+  }
+
+  /** Impression du ticket (format 80 mm) sans quitter la caisse. */
+  function imprimer(jeton) {
+    var ancien = document.getElementById('cadre-impression');
+    if (ancien) { ancien.remove(); }
+    var cadre = el('iframe', { id: 'cadre-impression', title: 'Impression du ticket', src: '/t/' + jeton + '?imprimer=1', style: 'position:fixed;width:0;height:0;border:0;left:-9999px' });
+    document.body.appendChild(cadre);
+  }
+
+  /** Met à jour les lignes d'un ticket gardé en mémoire avec le catalogue actuel (prix, nom, TVA). */
+  function rafraichirPrix() {
+    etat.ticket.lignes.forEach(function (l) {
+      if (!l.articleId) { return; }
+      var a = D.articles.filter(function (x) { return x.id === l.articleId; })[0];
+      if (a) { l.nom = a.nom; l.prix = a.prix; l.taux = a.taux; l.type = a.type; }
+    });
   }
 
   // ── Verrouillage ─────────────────────────────────────────────────────
@@ -692,6 +878,7 @@
   // ── Démarrage ────────────────────────────────────────────────────────
   function demarrer() {
     charger();
+    rafraichirPrix();
     if (!etat.ticket.barbierId) { etat.ticket.barbierId = barbierParDefaut(); }
     preparerBarbier();
 
@@ -737,7 +924,7 @@
         case 'paiement-partiel':
         case 'encaisser':
           if (!etat.ticket.lignes.length) { toast('Le ticket est vide.'); break; }
-          encaisser();
+          encaisser(cible.getAttribute('data-action') === 'paiement-partiel');
           break;
         case 'verrouiller': verrouiller(); break;
         case 'bientot':
