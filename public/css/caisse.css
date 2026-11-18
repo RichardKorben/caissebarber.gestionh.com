@@ -84,10 +84,11 @@ button { font: inherit; color: inherit; }
 .badge-attente { position: absolute; top: -7px; right: -7px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: var(--bg-total); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 
 .ticket-lignes { flex: 1 1 auto; overflow-y: auto; padding: 6px 20px; overscroll-behavior: contain; }
-.ligne-ticket { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--row-divider); }
-.ligne-texte { min-width: 0; border: 0; background: none; text-align: left; padding: 4px 0; cursor: pointer; color: var(--text-on-light); }
+.ligne-ticket { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 6px 10px; padding: 12px 0; border-bottom: 1px solid var(--row-divider); }
+/* Le nom occupe toute la 1re rangée ; prix × quantité, boutons et total sont sur la 2e. */
+.ligne-texte { grid-column: 1 / -1; min-width: 0; border: 0; background: none; text-align: left; padding: 2px 0; cursor: pointer; color: var(--text-on-light); }
 .ligne-nom { display: block; font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
-.ligne-detail { display: block; font-size: 13px; color: var(--text-muted-light); margin-top: 2px; }
+.ligne-detail { display: block; min-width: 0; font-size: 13px; color: var(--text-muted-light); cursor: pointer; }
 .ligne-detail .remise-ligne { color: #8A5A00; font-weight: 600; }
 .stepper { display: flex; align-items: center; border: 1px solid var(--border-light); border-radius: var(--r-sm); overflow: hidden; }
 .stepper button { width: 40px; height: 44px; border: 0; background: var(--bg-ticket-btn); color: var(--text-on-light); display: flex; align-items: center; justify-content: center; cursor: pointer; }

@@ -282,10 +282,13 @@
       var moins = l.quantite === 1
         ? el('button', { type: 'button', 'aria-label': 'Retirer ' + l.nom, onclick: function () { retirerLigne(l.cle); } }, [iconeSvg(ICONE_CORBEILLE)])
         : el('button', { type: 'button', 'aria-label': 'Diminuer la quantité de ' + l.nom, onclick: function () { l.quantite--; changer(); } }, [iconeSvg(ICONE_MOINS)]);
+      // 1re rangée : le nom sur toute la largeur ; 2e rangée : prix × quantité, boutons −/+, total.
+      elDetail.addEventListener('click', function () { optionsLigne(l); });
       conteneur.appendChild(el('div', { classe: 'ligne-ticket' }, [
         el('button', { type: 'button', classe: 'ligne-texte', 'aria-label': 'Options de ' + l.nom, onclick: function () { optionsLigne(l); } }, [
-          el('span', { classe: 'ligne-nom', texte: l.nom }), elDetail
+          el('span', { classe: 'ligne-nom', texte: l.nom })
         ]),
+        elDetail,
         el('div', { classe: 'stepper' }, [
           moins,
           el('output', { texte: String(l.quantite), 'aria-label': 'Quantité' }),
