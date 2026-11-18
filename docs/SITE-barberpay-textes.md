@@ -13,24 +13,26 @@
 - **Ne jamais écrire** qu'une caisse devient obligatoire pour tout le monde en 2027 (c'est faux, voir la page Loi).
 - Pages de loi : date « Mis à jour le … » visible, liens vers les textes officiels.
 - Boutons à la première personne : « Créer mon compte gratuit », « Ouvrir la démo ».
-- En-tête (menu) : Fonctionnalités · La loi · Gratuit · Démo · FAQ · **[Créer mon compte]**
+- En-tête (menu) : Fonctionnalités · La loi · Prix · Démo · FAQ · **[Créer mon compte]**
 - Pied de page : BarberPay est édité par KDSOFT SAS · Mentions légales · CGU · Confidentialité · Contact · Attestation de conformité
 
 ---
 
 ## 1. Accueil — `/`
 
-- **Title** : Logiciel de caisse barbier gratuit et conforme | BarberPay
-- **Description** : La caisse des barbiers : simple, sur tablette, conforme à la loi anti-fraude TVA et prête pour l'e-reporting 2027. Gratuite, sans abonnement.
+- **Title** : Logiciel de caisse barbier, simple et conforme | BarberPay
+- **Description** : La caisse taillée pour les barbiers : on encaisse en deux touches sur tablette, conforme à la loi anti-fraude TVA, prête pour 2027. Et en plus, gratuite.
 - **Mots-clés visés** : logiciel de caisse barbier, caisse barbier gratuite, caisse enregistreuse barbier
 
 ### Bandeau principal
-**H1 : La caisse gratuite des barbiers, conforme à la loi.**
+**H1 : La caisse taillée pour les barbiers.**
 
-Encaisse une coupe en deux touches, sur tablette, ordinateur ou téléphone. BarberPay est conforme aux règles anti-fraude TVA, livré avec son attestation, et prépare ton salon à l'échéance de septembre 2027.
+Coupes, barbes, produits : tu encaisses en deux touches, sur tablette, ordinateur ou téléphone. Conforme à la loi anti-fraude TVA, livrée avec son attestation, et prête pour l'échéance de septembre 2027.
 
-**[Créer mon compte gratuit]**  **[Essayer la démo]**
-*Gratuit · Sans carte bancaire · Sans engagement*
+**[Créer mon compte]**  **[Essayer la démo]**
+*Ton compte en 1 minute · Sans carte bancaire · Et en plus, c'est gratuit*
+
+> Choix du 18/11/2026 : l'accent est mis sur « dédié aux barbiers » ; la gratuité est un bonus (« la cerise sur le gâteau »), pas l'accroche. « En un clic » n'est pas écrit tant que l'inscription demande plusieurs champs.
 
 (Visuel : capture de la caisse sur une tablette.)
 
@@ -306,10 +308,12 @@ La loi admet les deux. Une certification par un organisme coûte cher à l'édit
 
 ---
 
-## 6. Gratuit — `/gratuit`
+## 6. Prix — `/prix`
 
-- **Title** : Logiciel de caisse gratuit pour barbiers | BarberPay
-- **Description** : BarberPay est gratuit : pas d'abonnement, pas de carte bancaire, pas de limite de tickets. Seuls d'éventuels modules complémentaires seront payants.
+> Renommée le 18/11/2026 (ancienne adresse `/gratuit`, redirigée en 301) : le menu dit « Prix », la page répond « gratuit ».
+
+- **Title** : Prix du logiciel de caisse barbier : gratuit | BarberPay
+- **Description** : Combien coûte BarberPay ? Rien : pas d'abonnement, pas de carte bancaire, pas de limite de tickets. Seuls d'éventuels modules complémentaires seront payants.
 - **Mots-clés** : logiciel de caisse gratuit, caisse gratuite barbier, caisse enregistreuse gratuite
 
 **H1 : Gratuit. Pas pour un mois : tout le temps.**
