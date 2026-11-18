@@ -132,5 +132,6 @@ npm install --prefix tests                                     # une fois : jsdo
 - **Contrôle** : `app/cli/barberpay integrite --compte=<sous-domaine>` (code de sortie 3 en cas d'anomalie).
 - **Ticket en ligne** : `/t/<jeton>` (128 bits aléatoires, aucun cookie posé). Impression : la caisse charge
   `/t/<jeton>?imprimer=1` dans un cadre caché ; régler l'imprimante thermique sur un papier de 80 mm.
-- **QR code** : la caisse charge `public/js/vendor/qrcode-generator-1.4.4.min.js` s'il existe (bibliothèque MIT,
-  non encore ajoutée) ; sinon elle affiche le lien du ticket.
+- **QR code** : `public/js/vendor/qrcode-generator-1.4.4.min.js` (MIT, copie locale de cdnjs, empreinte et licence
+  dans `qrcode-generator.LICENSE.txt`). Vérifié : le QR produit est décodé exactement vers l'adresse du ticket.
+  Sans ce fichier, la caisse affiche le lien du ticket.
