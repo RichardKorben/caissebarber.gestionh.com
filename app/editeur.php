@@ -13,7 +13,7 @@ return [
     'adresse' => 'À COMPLÉTER',
     'code_postal' => 'À COMPLÉTER',
     'ville' => 'À COMPLÉTER',
-    'siren' => 'À COMPLÉTER',
+    'siren' => '910 135 466',
     'representant' => 'À COMPLÉTER', // nom et qualité du signataire
     'logiciel' => 'BarberPay',
     'version_majeure' => '0', // l'attestation couvre une version majeure (0.x) ; à renouveler à chaque version majeure
