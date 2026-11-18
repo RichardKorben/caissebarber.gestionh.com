@@ -15,7 +15,7 @@ return [
     'code_postal' => '63360',
     'ville' => 'Saint-Beauzire',
     'siren' => '910 135 466',
-    'representant' => 'À COMPLÉTER', // nom et qualité du signataire
+    'representant' => 'Loic PAPON, président', // nom et qualité du signataire
     'logiciel' => 'BarberPay',
     'version_majeure' => '0', // l'attestation couvre une version majeure (0.x) ; à renouveler à chaque version majeure
 ];

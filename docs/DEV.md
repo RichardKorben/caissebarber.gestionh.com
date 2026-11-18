@@ -72,9 +72,9 @@ Sans `BP_MOT_DE_PASSE`, un mot de passe est généré et affiché une seule fois
 
 ## Droits des fichiers
 Apache (PHP-FPM, utilisateur `www-data`) doit pouvoir lire les fichiers : groupe `www-data`, droits `g+r`.
-Le dossier `app/` appartient à `root` et n'a pas le bit `setgid` : un nouveau fichier créé **directement**
-dans `app/` prend le mauvais groupe. Après en avoir créé un : `chgrp www-data app/<fichier>`.
-(Les sous-dossiers `src/`, `cli/`, `migrations/` ont le `setgid` et n'ont pas ce problème.)
+Tous les dossiers du projet ont le bit `setgid` (depuis le 18/11/2026, `app/` compris) : un nouveau fichier prend
+automatiquement le groupe `www-data`. Vérification rapide :
+`find . -path ./.git -prune -o -path ./tests/node_modules -prune -o ! -group www-data -print` (ne doit rien afficher).
 
 ## Sécurité
 - Toutes les requêtes SQL sont préparées. Aucune valeur venant du navigateur n'est collée dans du SQL.
