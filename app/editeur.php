@@ -9,10 +9,11 @@
 declare(strict_types=1);
 
 return [
-    'raison_sociale' => 'À COMPLÉTER',
-    'adresse' => 'À COMPLÉTER',
-    'code_postal' => 'À COMPLÉTER',
-    'ville' => 'À COMPLÉTER',
+    // Annuaire des entreprises (recherche-entreprises.api.gouv.fr), consulté le 18/11/2026 : SAS active, APE 58.29C.
+    'raison_sociale' => 'KDSOFT (SAS)',
+    'adresse' => '8 rue de la Limagne',
+    'code_postal' => '63360',
+    'ville' => 'Saint-Beauzire',
     'siren' => '910 135 466',
     'representant' => 'À COMPLÉTER', // nom et qualité du signataire
     'logiciel' => 'BarberPay',
