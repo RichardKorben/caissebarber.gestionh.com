@@ -225,3 +225,44 @@ transmet pas l'environnement), confirmation par l'API du site : caisse en ligne 
 
 **Non fait** : liste des inscriptions dans un écran d'admin (lire `GH_main.barberpay_inscriptions`) ; purge des
 fichiers de suivi anciens ; certificat générique `*.gestionh.com` au-delà de 50 certificats par semaine.
+
+## Gestion dans install (18/11/2026)
+https://install.gestionh.com (réservé aux IP d'administration), à l'image du module pizza :
+
+- **Nouveau client barber** (menu 105, `pages/nouveauBarber/`) : SIRET (annuaire, aucune restriction d'activité,
+  simple avertissement ; refus si établissement fermé ou SIRET déjà client) → adresse → gérant (mot de passe généré
+  et modifiable, régime de TVA proposé : franchise pour un entrepreneur individuel, assujetti sinon ; envoi des
+  identifiants par e-mail au choix) → création suivie en direct, avec le détail technique. Même script de création
+  que l'inscription en ligne (`barber_creation.py`), origine « assistant install ».
+- **Salons BarberPay** (menu 106, `pages/salonsBarber/`) : tous les salons du registre (adresse, base, version,
+  régime, gérant, tickets, dernier ticket, état, origine) ; **Geler** (la caisse affiche « compte suspendu »,
+  données conservées) / **Réactiver** ; **Supprimer**. En dessous, les **inscriptions en ligne** (lien envoyé,
+  création, caisse créée, échec avec le motif, lien expiré) avec **Relancer** pour une création échouée.
+- **Fiche du sous-domaine** (Domaines › Sous-domaines, type 14) : carte « Salon BarberPay » (état, gérant, tickets,
+  Ouvrir la caisse, Supprimer le salon) **à la place** des actions serveur génériques (dossier, vhost, SSL, base,
+  déploiement, kdFast) : le code est commun à tous les salons, et « Supprimer la base » détruirait les données
+  fiscales sans sauvegarde. Sauvegardes et restauration restent disponibles.
+- **Supprimer un salon** : seulement s'il a été créé par l'inscription en ligne ou l'assistant
+  (`KD_install.sous_domaines.origine`) ; confirmation en tapant le sous-domaine ; case obligatoire s'il a des
+  tickets (à conserver 6 ans). Avant tout retrait : dump de la base, registre et inscriptions (JSON), clé de
+  signature et archives fiscales dans `/var/kdSite/archives/barberpay-supprimes/<x>-supprime-<date>/` (700, root).
+  Si la sauvegarde échoue, rien n'est supprimé.
+
+**Sauvegardes** : chaque salon est déclaré dans `KD_install.sous_domaines` avec le type 14 « BarberPay caisse »
+(`bdd_name` = `BARBER_<x>`), sinon `backup_databases.py` ignore sa base. Fait automatiquement à la création ;
+`caissebarber` (passé du type 1 au type 14) et `essaibarber` ont été déclarés à la main. `barbertest` (base
+`BARBER_dev2`, sans adresse web) ne l'est pas. **`GH_main`** (registre et inscriptions) est sauvegardée comme base
+système depuis le 18/11/2026 : `SYSTEM_DBS = ["KD_install", "GH_main"]` dans `/var/kdSite/scripts/backup_databases.py`
+(cron, toutes les 2 h) et dans la copie `scriptsV2` (dispatcher) ; fins de ligne CRLF d'origine conservées.
+Sauvegardes : `/var/kdSite/backups/bdd/_system/<date>/` et `/var/kdSite/backups/bdd/gestionh.com/<date>/`
+(rétention 3 jours). Les données fiscales sur 6 ans reposent sur les archives signées de chaque salon, pas sur ces
+sauvegardes.
+
+**Serveur** : action `barber_admin` du dispatcher (`/var/kdSite/scriptsV2/barber_admin.py` : verifier, adresse,
+creer, suivi, relancer, infos_suppression, supprimer). Kit et retour arrière :
+`/var/kdSite/archives/2026-11-18-barberpay-install/` (`avant/`, `sources/`, `retour.sh`, `LISEZMOI.md`).
+
+**Tests du 18/11/2026** : geler / réactiver `essaibarber` (403 « Compte suspendu », puis 200) ; création par
+l'assistant de `essaiassist` (SIRET fictif, sans e-mail), connexion du gérant OK, mauvais mot de passe refusé ;
+suppression : mauvaise confirmation refusée, puis salon retiré sans reste (dump vérifié : 17 tables) ; relance d'une
+inscription en échec simulée (`essairelance`) : caisse créée, seconde relance refusée. Salons de test supprimés.
