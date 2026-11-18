@@ -102,8 +102,10 @@ function icone(string $nom, int $taille = 24): string
 <body class="caisse">
 <?php if (!empty($_SESSION['formation'])): ?>
 <div class="bandeau-formation" role="status">MODE FORMATION — tickets sans valeur, non comptabilisés. <a href="/admin/conformite.php">Quitter</a></div>
+<?php elseif ($tenant->demo): ?>
+<?php require __DIR__ . '/app/demo-bandeau.php'; ?>
 <?php endif; ?>
-<div class="app<?= !empty($_SESSION['formation']) ? ' app-formation' : '' ?>" id="app">
+<div class="app<?= !empty($_SESSION['formation']) ? ' app-formation' : ($tenant->demo ? ' app-demo' : '') ?>" id="app">
     <!-- 1. Barre latérale -->
     <nav class="barre" aria-label="Caisse">
         <div class="logo" aria-hidden="true">
@@ -195,6 +197,9 @@ function icone(string $nom, int $taille = 24): string
         </div>
         <h2 id="verrou-titre"><?= e($tenant->nomSalon) ?></h2>
         <p class="verrou-consigne" id="verrou-consigne">Qui est à la caisse ?</p>
+<?php if ($tenant->demo): ?>
+        <p class="verrou-astuce">Démo : codes PIN <?= e(BarberPay\Demo::astucePins()) ?></p>
+<?php endif; ?>
         <div class="verrou-membres" id="verrou-membres"></div>
         <div class="verrou-pin" id="verrou-pin" hidden>
             <p class="verrou-points" id="verrou-points" aria-live="polite"></p>

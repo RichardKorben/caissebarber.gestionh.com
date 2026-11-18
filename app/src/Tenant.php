@@ -23,6 +23,8 @@ final class Tenant
         public readonly string $base,
         public readonly string $nomSalon,
         public readonly string $statut,
+        /** Compte de démonstration (barberdemo) : connexion automatique, actions sensibles bloquées. */
+        public readonly bool $demo = false,
     ) {
     }
 
@@ -50,7 +52,7 @@ final class Tenant
     public static function trouver(mysqli $commune, string $sousDomaine): ?self
     {
         $requete = $commune->prepare(
-            'SELECT id, sous_domaine, base, nom_salon, statut FROM barberpay_comptes WHERE sous_domaine = ? LIMIT 1'
+            'SELECT id, sous_domaine, base, nom_salon, statut, demo FROM barberpay_comptes WHERE sous_domaine = ? LIMIT 1'
         );
         $requete->bind_param('s', $sousDomaine);
         $requete->execute();
@@ -62,7 +64,7 @@ final class Tenant
     public static function tous(mysqli $commune): array
     {
         $comptes = [];
-        foreach ($commune->query('SELECT id, sous_domaine, base, nom_salon, statut FROM barberpay_comptes ORDER BY id') as $ligne) {
+        foreach ($commune->query('SELECT id, sous_domaine, base, nom_salon, statut, demo FROM barberpay_comptes ORDER BY id') as $ligne) {
             $comptes[] = self::depuisLigne($ligne);
         }
         return $comptes;
@@ -82,6 +84,7 @@ final class Tenant
             (string) $ligne['base'],
             (string) $ligne['nom_salon'],
             (string) $ligne['statut'],
+            !empty($ligne['demo']),
         );
     }
 }

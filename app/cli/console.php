@@ -13,6 +13,7 @@
  *   barberpay compte:creer < donnees.json          salon complet (inscription en ligne), réponse JSON
  *   barberpay compte:activer --sous-domaine=<x>    compte « en préparation » → actif, réponse JSON
  *   barberpay compte:annuler --sous-domaine=<x>    supprime un compte resté « en préparation », réponse JSON
+ *   barberpay demo:reinitialiser                    recrée la démo barberdemo (chaque nuit, en www-data)
  */
 declare(strict_types=1);
 
@@ -221,6 +222,11 @@ try {
                 echo json_encode(['status' => 'error', 'message' => $erreur->getMessage()], JSON_UNESCAPED_UNICODE) . "\n";
                 exit(1);
             }
+
+        case 'demo:reinitialiser':
+            $stats = (new BarberPay\Demo(Database::commune(), Database::serveur()))->reinitialiser();
+            echo date('Y-m-d H:i:s') . " démo recréée : {$stats['jours']} jour(s), {$stats['tickets']} ticket(s), {$stats['clotures']} clôture(s).\n";
+            exit(0);
 
         case 'integrite':
             $tenant = bp_compte((string) bp_option($options, 'compte'));

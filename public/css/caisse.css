@@ -225,3 +225,7 @@ button { font: inherit; color: inherit; }
   .fenetre .affichage { min-height: 52px; font-size: 30px; padding: 6px 14px; }
   .fenetre .segments button, .fenetre .raccourcis button { min-height: 44px; }
 }
+/* Démo : bandeau fixe au-dessus de l'écran de caisse (même principe que le mode formation). */
+body.caisse .bandeau-demo { position: fixed; top: 0; left: 0; right: 0; z-index: 40; }
+.app-demo { padding-top: 34px; }
+@media (max-width: 980px) { body.caisse .bandeau-demo { position: static; } .app-demo { padding-top: 0; } }

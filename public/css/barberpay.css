@@ -215,4 +215,8 @@ input:focus { border-color: var(--gold); outline: none; }
 
 .logo-connexion { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 8px; }
 .logo-connexion .logotype { font-size: 20px; letter-spacing: 2px; }
-}
+
+/* ── Démo (barberdemo) ──────────────────────────────────────────────── */
+.bandeau-demo { background: var(--gold); color: var(--text-on-gold); text-align: center; font-weight: 600; font-size: 14px; padding: 7px 12px; line-height: 1.4; }
+.bandeau-demo a { color: var(--text-on-gold); font-weight: 700; text-decoration: underline; margin-left: 10px; white-space: nowrap; }
+.verrou-astuce { color: var(--gold); font-size: 14px; margin: 0; }

@@ -18,6 +18,12 @@ require __DIR__ . '/bootstrap.php';
 
 header('Content-Type: text/html; charset=UTF-8');
 
+/** Message des fonctions désactivées dans la démo. */
+function bp_demo_bloque(): string
+{
+    return 'Désactivé dans la démo. Crée ton compte gratuit sur barberpay.fr pour utiliser cette fonction.';
+}
+
 /** Page d'erreur minimale, sans rien révéler du fonctionnement interne. */
 function bp_page_erreur(int $code, string $titre, string $message): never
 {
@@ -53,6 +59,19 @@ try {
     }
     $journal = new Journal($con, $tenant);
     $auth = new Auth($con, $journal);
+
+    // Démo (barberdemo) : le visiteur est connecté d'office comme gérant, sans mot de passe à connaître.
+    // Une déconnexion ramène simplement ici. Voir docs/DEV.md, section « Démo ».
+    if ($tenant->demo && empty($pagePublique) && $auth->utilisateur() === null) {
+        $gerant = $con->query("SELECT id FROM utilisateurs WHERE role = 'gerant' AND actif = 1 ORDER BY id LIMIT 1")->fetch_row();
+        if ($gerant) {
+            Session::renouveler();
+            $_SESSION['utilisateur_id'] = (int) $gerant[0];
+            $_SESSION['operateur_id'] = (int) $gerant[0];
+            $_SESSION['operateur_actif_le'] = time();
+            $journal->ecrire(Journal::CONNEXION, ['mode' => 'démo'], (int) $gerant[0]);
+        }
+    }
 } catch (Throwable $erreur) {
     error_log('BarberPay : ' . $erreur->getMessage() . ' (' . $erreur->getFile() . ':' . $erreur->getLine() . ')');
     bp_page_erreur(500, 'Service indisponible', 'Une erreur est survenue. Réessayez dans un instant.');

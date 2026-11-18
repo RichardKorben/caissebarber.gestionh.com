@@ -55,6 +55,7 @@ function poste_haut(string $titre, string $actif): void
 </head>
 <body class="admin poste">
 <a class="lien-evitement" href="#contenu">Aller au contenu</a>
+<?php if ($tenant->demo) { require __DIR__ . '/demo-bandeau.php'; } ?>
 <div class="admin-cadre">
     <nav class="barre-laterale" aria-label="Poste de caisse">
         <a class="logo-lien" href="/" aria-label="Retour à la caisse">

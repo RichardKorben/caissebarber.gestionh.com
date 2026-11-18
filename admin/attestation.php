@@ -13,6 +13,10 @@ use function BarberPay\e;
 
 require __DIR__ . '/../app/admin.php';
 
+if ($tenant->demo) {
+    BarberPay\Flash::erreur(bp_demo_bloque());
+    admin_rediriger('/admin/conformite.php');
+}
 $editeur = require __DIR__ . '/../app/editeur.php';
 $complet = !in_array('À COMPLÉTER', $editeur, true);
 $p = (new Parametres($con, $tenant))->charger();

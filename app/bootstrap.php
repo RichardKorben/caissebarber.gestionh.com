@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace BarberPay;
 
-const VERSION = '0.5.1';
+const VERSION = '0.5.2';
 const RACINE = __DIR__ . '/..';
 const DOSSIER_APP = __DIR__;
 const BASE_COMMUNE = 'GH_main';

@@ -266,3 +266,34 @@ creer, suivi, relancer, infos_suppression, supprimer). Kit et retour arrière :
 l'assistant de `essaiassist` (SIRET fictif, sans e-mail), connexion du gérant OK, mauvais mot de passe refusé ;
 suppression : mauvaise confirmation refusée, puis salon retiré sans reste (dump vérifié : 17 tables) ; relance d'une
 inscription en échec simulée (`essairelance`) : caisse créée, seconde relance refusée. Salons de test supprimés.
+
+## Démo (18/11/2026)
+https://barberdemo.gestionh.com — lien « Ouvrir la démo » de https://barberpay.fr/demo (`demo` dans `app/config.php`
+du site). Compte `barberdemo` du registre avec **`demo = 1`** (migration `main/0003_demo.sql`, `Tenant::$demo`).
+
+- **Connexion automatique** (`app/web.php`) : sans session, le visiteur est connecté comme le gérant « Max » (même
+  session qu'une connexion par e-mail, événement CONNEXION « démo » au journal). Déconnexion → retour dans la démo.
+- **Faux salon** (`app/src/Demo.php`) : « Barber Démo », assujetti, SIRET et TVA à zéros, adresse fictive,
+  mention de ticket « Ticket de démonstration BarberPay — sans valeur », verrouillage automatique désactivé ;
+  7 prestations et 4 produits avec prix ; Max (gérant, PIN 1234), Yanis (1111), Karim (2222) — codes affichés sur
+  l'écran de verrouillage. **Pas de mode formation** : ses tickets ne comptent pas dans la recette, le visiteur ne
+  verrait rien bouger ; c'est la base entière qui est fictive.
+- **Semaine passée** : du mardi au samedi des 7 derniers jours, ouverture 150 €, 6 à 11 tickets par jour (services
+  pondérés, 25 % avec un produit, 8 % de remise fidélité ; 60 % carte, 35 % espèces, 5 % mixte), une annulation,
+  Z chaque soir (un écart de −2 €). Fabriquée par le vrai moteur avec `Horloge::fixer` : chaînage et signatures
+  valides (`barberpay integrite --compte=barberdemo` → INTÈGRE). Tirages reproductibles (graine = date).
+  La journée du jour démarre vide.
+- **Bandeau** permanent (`app/demo-bandeau.php`) : « Démo BarberPay · données fictives, remises à zéro chaque nuit »
+  + lien vers https://barberpay.fr/inscription.
+- **Bloqué** (message `bp_demo_bloque()`) : enregistrement du salon (`admin/salon.php`), création ou modification
+  d'un gérant (`admin/membre.php`), attestation (`admin/attestation.php`), clôture Z du jour (`api/caisse.php`,
+  elle bloquerait les ventes de tous les visiteurs). Tout le reste fonctionne (ventes, remises, annulations,
+  barbiers, catalogue, exports, mode formation).
+- **Remise à zéro** : `barberpay demo:reinitialiser`, chaque nuit à 5 h en www-data (`/etc/cron.d/barberpay-demo`,
+  résultat dans le journal système : `journalctl -t barberpay-demo`). Efface la base, la ligne du registre, la clé
+  de signature et les archives de `barberdemo` — refuse d'agir si la ligne existe sans `demo = 1`.
+- **Serveur** : configuration Apache et certificat comme un salon (créés une fois, à la main, avec les modèles de
+  `barber_creation.py`) ; déclaré dans install (type 14, origine « démo BarberPay » : non supprimable depuis install).
+
+**Constat** : aucune tâche de nuit ne lance `barberpay cloturer --tous` pour les vrais salons ; les journées
+oubliées sont clôturées au premier encaissement suivant (`rattraper()`).

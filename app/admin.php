@@ -80,6 +80,7 @@ function admin_haut(string $titre, string $actif): void
 </head>
 <body class="admin">
 <a class="lien-evitement" href="#contenu">Aller au contenu</a>
+<?php if ($tenant->demo) { require __DIR__ . '/demo-bandeau.php'; } ?>
 <div class="admin-cadre">
     <nav class="barre-laterale" aria-label="Administration">
         <a class="logo-lien" href="/" aria-label="Retour à la caisse">

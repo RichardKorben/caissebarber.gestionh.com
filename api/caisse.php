@@ -137,6 +137,9 @@ try {
         case 'cloturer':
             $exigerPost();
             $caisse->toucher();
+            if ($tenant->demo) {
+                api_erreur(bp_demo_bloque());
+            }
             $comptees = api_corps()['especesComptees'] ?? null;
             if ($comptees !== null && !is_int($comptees)) {
                 api_erreur('Comptage des espèces invalide.');

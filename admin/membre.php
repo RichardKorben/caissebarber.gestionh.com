@@ -25,6 +25,10 @@ $valeurs = [
     'email' => (string) ($membre['email'] ?? ''),
 ];
 
+if (admin_post() && $tenant->demo && (($membre['role'] ?? '') === Equipe::GERANT || ($_POST['role'] ?? '') === Equipe::GERANT)) {
+    Flash::erreur(bp_demo_bloque());
+    admin_rediriger('/admin/equipe.php');
+}
 if (admin_post()) {
     $valeurs = array_merge($valeurs, array_intersect_key($_POST, $valeurs));
     $resultat = $equipe->enregistrer($_POST, $id);

@@ -32,6 +32,10 @@ $valeurs = [
     'verrouillage_minutes' => (string) $p['verrouillage_minutes'],
 ];
 
+if (admin_post() && $tenant->demo) {
+    Flash::erreur(bp_demo_bloque());
+    admin_rediriger('/admin/salon.php');
+}
 if (admin_post()) {
     $valeurs = array_merge($valeurs, array_intersect_key($_POST, $valeurs));
     $valeurs['animation_poteau'] = empty($_POST['animation_poteau']) ? '0' : '1';
