@@ -44,6 +44,8 @@ table { width: 100%; border-collapse: collapse; }
 .technique { color: #888; font-size: 11px; margin-top: 8px !important; }
 
 .actions { text-align: center; margin: 18px 0 0; }
+.lien-retour-recu { color: #C9A44C; margin-left: 12px; font-weight: 600; }
+.total-ecart { font-weight: 700; }
 .actions button { min-height: 48px; padding: 0 20px; border-radius: 12px; border: 0; background: #C9A44C; color: #0A0A0A; font: 600 15px "Inter", sans-serif; cursor: pointer; }
 
 /* ── Impression : rouleau thermique 80 mm (zone imprimable ≈ 72 mm) ── */

@@ -7,6 +7,7 @@
  *   barberpay comptes
  *   barberpay compte:ajouter --sous-domaine=<x> --base=<BASE> --salon="<nom>" [--creer-base] [--statut=actif]
  *   barberpay integrite --compte=<sous-domaine>     contrôle des tickets et du journal (chaînage, signatures)
+ *   barberpay cloturer --compte=<sous-domaine> | --tous   clôtures automatiques en retard (à lancer chaque nuit)
  *   barberpay gerant:creer --compte=<sous-domaine> --email=<e-mail> --prenom=<prénom> [--nom=<nom>]
  *       (mot de passe lu dans la variable d'environnement BP_MOT_DE_PASSE, sinon généré et affiché une fois)
  */
@@ -168,10 +169,32 @@ try {
             }
             exit(0);
 
+        case 'cloturer':
+            $cible = bp_option($options, 'compte', false);
+            if ($cible === null && !isset($options['tous'])) {
+                fwrite(STDERR, "Précisez --compte=<sous-domaine> ou --tous.\n");
+                exit(2);
+            }
+            $echecs = 0;
+            foreach ($cible !== null ? [bp_compte($cible)] : Tenant::tous(Database::commune()) as $tenant) {
+                if (!$tenant->estActif()) {
+                    continue;
+                }
+                try {
+                    $con = Database::barber($tenant->base);
+                    $faites = (new BarberPay\Clotures($con, $tenant, new BarberPay\Journal($con, $tenant)))->rattraper();
+                    echo sprintf("  %-20s %s\n", $tenant->sousDomaine, $faites ? implode(', ', $faites) : 'rien à clôturer');
+                } catch (Throwable $erreur) {
+                    $echecs++;
+                    echo sprintf("  %-20s ÉCHEC : %s\n", $tenant->sousDomaine, $erreur->getMessage());
+                }
+            }
+            exit($echecs ? 1 : 0);
+
         case 'integrite':
             $tenant = bp_compte((string) bp_option($options, 'compte'));
             $resultat = (new BarberPay\Integrite(Database::barber($tenant->base), $tenant))->verifier();
-            echo ($resultat['ok'] ? 'INTÈGRE' : 'ANOMALIES') . " — {$resultat['tickets']} ticket(s), {$resultat['evenements']} événement(s) contrôlés\n";
+            echo ($resultat['ok'] ? 'INTÈGRE' : 'ANOMALIES') . " — {$resultat['tickets']} ticket(s), {$resultat['clotures']} clôture(s), {$resultat['evenements']} événement(s) contrôlés\n";
             foreach ($resultat['erreurs'] as $erreur) {
                 echo '  - ' . $erreur . "\n";
             }

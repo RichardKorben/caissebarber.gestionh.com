@@ -22,6 +22,10 @@ final class Journal
     public const REGIME_TVA_MODIFIE = 'REGIME_TVA_MODIFIE';
     public const EQUIPE_MODIFIEE = 'EQUIPE_MODIFIEE';
     public const CONTROLE_INTEGRITE = 'CONTROLE_INTEGRITE';
+    public const OUVERTURE_CAISSE = 'OUVERTURE_CAISSE';
+    public const CLOTURE = 'CLOTURE';
+    public const DUPLICATA = 'DUPLICATA';
+    public const REGIME_TVA_APPLIQUE = 'REGIME_TVA_APPLIQUE';
 
     public function __construct(private readonly mysqli $con, private readonly Tenant $tenant)
     {
@@ -41,7 +45,7 @@ final class Journal
         try {
             $reservation = Chaine::reserver($this->con, 'journal');
             $numero = $reservation['numero'];
-            $date = date('Y-m-d H:i:s');
+            $date = Horloge::date('Y-m-d H:i:s');
             $json = Chaine::json($details);
             $version = VERSION;
             $canonique = self::canonique($numero, $date, $code, $operateurId, $ticketId, $json, $version);

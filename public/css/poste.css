@@ -1,0 +1,58 @@
+/* BarberPay — écrans Historique et Recette (complète admin.css). */
+
+.visuellement-cache { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.recherche-ticket { display: flex; gap: 8px; }
+.recherche-ticket input { width: 170px; height: 48px; }
+.navigation-jours { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
+.navigation-jours form { margin: 0; }
+.navigation-jours input[type="date"] {
+  height: 48px; padding: 0 12px; background: var(--bg-card); color: var(--text-on-dark);
+  border: 1px solid var(--border-dark); border-radius: var(--r-sm); font: inherit; color-scheme: dark;
+}
+.fleche-droite { display: inline-flex; transform: scaleX(-1); }
+.ligne-prix.negatif { color: #F2B08F; }
+
+/* Tuiles de chiffres */
+.tuiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.tuile { background: var(--bg-card); border: 1px solid var(--border-dark); border-radius: var(--r-md); padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; }
+.tuile-principale { border-color: var(--gold); }
+.tuile-libelle { color: var(--text-side); font-size: 13px; font-weight: 600; }
+.tuile-valeur { font-family: var(--font-display); font-weight: 600; font-size: 30px; line-height: 1.1; color: var(--text-on-dark); white-space: nowrap; }
+.tuile-principale .tuile-valeur { color: var(--gold-hover); }
+.tuile-note { color: var(--text-muted-dark); font-size: 12px; }
+
+.colonnes { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.colonnes .carte { margin-bottom: 0; }
+.colonnes + .colonnes { margin-top: 16px; }
+.tableau-montants { margin: 8px 0 0; }
+.tableau-montants div { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border-dark); }
+.tableau-montants dt, .tableau-montants dd { margin: 0; }
+.tableau-montants dd { font-weight: 600; white-space: nowrap; }
+.sous-titre-carte { font-size: 14px; color: var(--text-side); margin: 16px 0 0; }
+.tableau { width: 100%; border-collapse: collapse; margin-top: 8px; }
+.tableau th { text-align: left; color: var(--text-side); font-size: 13px; font-weight: 600; padding: 6px 0; border-bottom: 1px solid var(--border-dark); }
+.tableau td { padding: 8px 0; border-bottom: 1px solid var(--border-dark); white-space: nowrap; }
+.tableau th + th, .tableau td + td { text-align: right; }
+
+.formulaire-ligne { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; }
+.formulaire-ligne .champ { flex: 1 1 200px; margin-top: 8px; }
+.formulaire-ligne .bouton { margin-top: 34px; }
+.carte-z { border-color: rgba(201, 164, 76, .5); }
+.ecart-ok { color: #B9E0AC; font-weight: 600; }
+.ecart-ko { color: #F2B08F; font-weight: 600; }
+
+/* Fenêtre */
+.fenetre-poste { border: 0; padding: 0; border-radius: var(--r-lg); background: var(--bg-card); color: var(--text-on-dark); width: min(460px, calc(100vw - 32px)); box-shadow: 0 20px 60px rgba(0,0,0,.6); }
+.fenetre-poste::backdrop { background: rgba(0, 0, 0, .65); }
+.fenetre-poste form { padding: 22px; display: flex; flex-direction: column; gap: 12px; margin: 0; }
+.fenetre-poste h2 { font-family: var(--font-display); font-weight: 600; font-size: 22px; letter-spacing: 1px; text-transform: uppercase; margin: 0; }
+.fenetre-poste p { margin: 0; color: var(--text-side); }
+.fenetre-poste label { margin: 4px 0 0; }
+.raccourcis { display: flex; flex-wrap: wrap; gap: 8px; }
+.puce { min-height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid var(--border-dark); background: var(--bg-app); color: var(--text-on-dark); font: 600 14px var(--font-body); cursor: pointer; }
+.bouton-danger { background: transparent; border-color: rgba(255, 138, 128, .5); color: var(--danger); }
+.bouton-danger:hover { background: rgba(200, 16, 46, .15); }
+
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 60; background: #F5F5F5; color: #111; padding: 12px 18px; border-radius: var(--r-sm); font-weight: 600; box-shadow: 0 8px 30px rgba(0,0,0,.4); max-width: calc(100vw - 32px); }
+.toast.erreur { background: #FFE1DD; color: #8B1A10; }

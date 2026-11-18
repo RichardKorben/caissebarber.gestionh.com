@@ -7,7 +7,11 @@
 ├── index.php           écran de caisse (DESIGN.md)
 ├── api/caisse.php      actions JSON de la caisse : verrouillage, PIN, tickets en attente
 ├── login.php           connexion du gérant
-├── ticket.php          ticket en ligne /t/<jeton> (sans connexion) et impression 80 mm (?imprimer=1)
+├── ticket.php          ticket en ligne /t/<jeton> (sans connexion) et impression 80 mm (?imprimer=1&duplicata=N)
+├── historique.php      tickets par jour ou par numéro : voir, réimprimer (duplicata), annuler (gérant)
+├── recette.php         recette du jour, ouverture (fond), fermeture avec comptage et Z, liste des clôtures
+├── z.php               édition d'une clôture (écran ou 80 mm)
+├── verrouiller.php     verrouillage depuis l'Historique / la Recette
 ├── logout.php          déconnexion (POST + jeton uniquement)
 ├── admin/              administration (gérant) : catalogue.php, article.php, equipe.php, membre.php, salon.php
 ├── public/             fichiers statiques : css/, fonts/ (Inter, Oswald), js/ (calcul.js, caisse.js)
@@ -16,9 +20,11 @@
 │   ├── web.php         démarrage d'une page : barber d'après l'adresse → sa base → session
 │   ├── admin.php       démarrage d'une page d'admin (gérant obligatoire) + mise en page, champ(), icone()
 │   ├── api.php         démarrage d'un point d'accès JSON (session + jeton CSRF en en-tête X-CSRF-Token)
+│   ├── poste.php       démarrage des écrans Historique / Recette (caisse déverrouillée) + mise en page
+│   ├── admin_outils.php icone(), champ() partagés
 │   ├── src/            classes : Database, Tenant, Session, Csrf, Auth, Migrator,
 │   │                   Montant, Tva, Flash, Parametres, Articles, Equipe, Calcul, Caisse, TicketsAttente,
-│   │                   Ventes, Chaine, Signature, Journal, Integrite, ConflitCatalogue
+│   │                   Ventes, Chaine, Signature, Journal, Integrite, ConflitCatalogue, Clotures, Horloge
 │   ├── migrations/
 │   │   ├── main/       migrations de GH_main (tables barberpay_*)
 │   │   └── tenant/     migrations de chaque base de barber
@@ -90,7 +96,10 @@ npm install --prefix tests                                     # une fois : jsdo
 ```
 - `tests/fiscal.php` écrit de vrais tickets dans **BARBER_dev2** (compte `barbertest`), jamais ailleurs. Il supprime
   un trigger le temps de prouver qu'une falsification est détectée, puis le remet.
-- `tests/api.sh` écrit des tickets de test dans **BARBER_dev** et laisse la caisse de dev verrouillée.
+- `tests/journee.php` crée une **base temporaire** (et un compte `test-journee-…` dans le registre), simule plusieurs
+  jours avec `Horloge::fixer()`, puis supprime tout (base, compte, clé).
+- `tests/api.sh` écrit des tickets de test dans **BARBER_dev** et laisse la caisse de dev verrouillée. Il ne fait
+  jamais de Z (un Z bloquerait les ventes de dev pour la journée).
 
 ## Écran de caisse (étape 2)
 - **Le ticket en cours vit dans le navigateur** (`public/js/caisse.js`, sauvegardé dans `localStorage`). Il n'a
@@ -135,3 +144,19 @@ npm install --prefix tests                                     # une fois : jsdo
 - **QR code** : `public/js/vendor/qrcode-generator-1.4.4.min.js` (MIT, copie locale de cdnjs, empreinte et licence
   dans `qrcode-generator.LICENSE.txt`). Vérifié : le QR produit est décodé exactement vers l'adresse du ticket.
   Sans ce fichier, la caisse affiche le lien du ticket.
+
+## Caisse du jour et clôtures (étape 4)
+- **Ouverture** (facultative) : fond de caisse du jour (`caisse_ouvertures`, une par jour).
+- **Z** (Recette → « Clôturer la journée ») : totaux du jour, par taux, par moyen, services/produits, par barbier,
+  remises, espèces attendues / comptées / écart, **grand total perpétuel** (et en valeur absolue). Chaîné et signé
+  (compteur `cloture`). **Après le Z, plus aucune vente ni annulation ce jour-là** (contrôlé sous le verrou du
+  compteur des tickets).
+- **Rattrapage automatique** (`Clotures::rattraper`, appelé à l'ouverture de la caisse, de l'Historique, de la
+  Recette et avant chaque encaissement) : Z automatique des journées passées non clôturées, puis clôture
+  mensuelle et annuelle (année civile). Possible aussi chaque nuit : `app/cli/barberpay cloturer --tous`.
+- **Régime de TVA** : un changement demandé alors que la journée a des ventes attend le Z (`regime_tva_a_venir`) :
+  une journée ne mélange jamais deux régimes.
+- **Duplicata** : la 1re impression après l'encaissement est l'original ; toute autre impression crée un duplicata
+  numéroté (`duplicatas`, journal), et le ticket imprimé porte « DUPLICATA n° X ».
+- **Horloge** : les dates du module fiscal passent par `Horloge::date()` ; les tests la fixent, jamais le site.
+- Le contrôle d'intégrité vérifie aussi les clôtures : chaînage, signature, et **totaux recalculés à partir des tickets**.

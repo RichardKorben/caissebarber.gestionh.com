@@ -38,6 +38,15 @@ foreach ($con->query('SELECT id, prenom FROM utilisateurs') as $u) {
 $barbiers = array_values(array_unique(array_filter(array_map(static fn (array $l) => $prenoms[$l['barbier_id']] ?? null, $ticket['lignes']))));
 $date = DateTime::createFromFormat('Y-m-d H:i:s', (string) $ticket['date_ticket']);
 $imprimer = isset($_GET['imprimer']);
+$duplicata = null;
+if (isset($_GET['duplicata']) && ctype_digit((string) $_GET['duplicata'])) {
+    $requete = $con->prepare('SELECT numero, cree_le FROM duplicatas WHERE ticket_id = ? AND numero = ?');
+    $idTicket = (int) $ticket['id'];
+    $numeroDuplicata = (int) $_GET['duplicata'];
+    $requete->bind_param('ii', $idTicket, $numeroDuplicata);
+    $requete->execute();
+    $duplicata = $requete->get_result()->fetch_assoc() ?: null;
+}
 $m = static fn (int $c): string => Montant::format($c);
 $libelleRemise = static fn (?string $type, ?int $valeur): string => $type === 'pct'
     ? ($valeur === 10000 ? 'offert' : rtrim(rtrim(number_format($valeur / 100, 2, ',', ''), '0'), ',') . ' %')
@@ -66,6 +75,7 @@ $libelleRemise = static fn (?string $type, ?int $valeur): string => $type === 'p
     </header>
 
     <?php if ($formation): ?><p class="bandeau">MODE FORMATION — SANS VALEUR</p><?php endif; ?>
+    <?php if ($duplicata): ?><p class="bandeau">DUPLICATA n° <?= (int) $duplicata['numero'] ?> — imprimé le <?= e(date('d/m/Y à H:i', strtotime((string) $duplicata['cree_le']))) ?></p><?php endif; ?>
 
     <section class="identite">
         <p class="titre"><?= $annulation ? 'Annulation' : 'Ticket' ?> n° <?= e(Ventes::numeroAffiche((int) $ticket['numero'])) ?></p>

@@ -236,6 +236,35 @@ final class Ventes
         return $this->resume($id);
     }
 
+    /**
+     * Réimpression d'un ticket : numérotée (1er, 2e duplicata…), conservée et inscrite au journal.
+     *
+     * @return array{numero:int, jeton:string}
+     */
+    public function duplicata(int $ticketId, ?int $operateurId): array
+    {
+        $ticket = $this->charger($ticketId);
+        if ($ticket === null) {
+            throw new InvalidArgumentException('Ticket introuvable.');
+        }
+        $this->con->begin_transaction();
+        try {
+            $requete = $this->con->prepare('SELECT COALESCE(MAX(numero), 0) + 1 FROM duplicatas WHERE ticket_id = ? FOR UPDATE');
+            $requete->bind_param('i', $ticketId);
+            $requete->execute();
+            $numero = (int) $requete->get_result()->fetch_row()[0];
+            $requete = $this->con->prepare('INSERT INTO duplicatas (ticket_id, numero, operateur_id) VALUES (?, ?, ?)');
+            $requete->bind_param('iii', $ticketId, $numero, $operateurId);
+            $requete->execute();
+            $this->journal->ecrire(Journal::DUPLICATA, ['ticket' => $ticket['numero'], 'duplicata' => $numero], $operateurId, $ticketId, true);
+            $this->con->commit();
+        } catch (Throwable $e) {
+            $this->con->rollback();
+            throw $e;
+        }
+        return ['numero' => $numero, 'jeton' => (string) $ticket['jeton_public']];
+    }
+
     /** @return array<string, mixed>|null ticket complet (en-tête, lignes, tva, paiements, annule_par, origine) */
     public function charger(int $id): ?array
     {
@@ -334,7 +363,15 @@ final class Ventes
     {
         $reservation = Chaine::reserver($this->con, 'ticket');
         $entete['numero'] = $reservation['numero'];
-        $entete['date_ticket'] = date('Y-m-d H:i:s');
+        $entete['date_ticket'] = Horloge::date('Y-m-d H:i:s');
+        // Après le Z du jour, la journée est fermée (contrôlé sous le verrou du compteur : pas de course avec le Z).
+        $jour = substr($entete['date_ticket'], 0, 10);
+        $z = $this->con->prepare("SELECT 1 FROM clotures WHERE type = 'jour' AND periode = ?");
+        $z->bind_param('s', $jour);
+        $z->execute();
+        if ($z->get_result()->fetch_row()) {
+            throw new InvalidArgumentException('La journée est clôturée (Z fait) : plus de vente ni d\'annulation aujourd\'hui. Elles reprendront demain.');
+        }
         $empreinte = Chaine::empreinte($reservation['precedente'], self::canonique($entete, $lignes, $tva, $paiements));
         $signature = Signature::pour($this->tenant)->signer($empreinte);
         $e = $entete;

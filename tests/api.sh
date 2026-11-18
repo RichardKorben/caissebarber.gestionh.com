@@ -48,6 +48,20 @@ R=$(A annuler '{"ticketId":'$ID',"motif":"Test automatique"}')
 has "$R" '"ok":true' "annulation par le gérant"
 has "$(A annuler '{"ticketId":'$ID',"motif":"encore"}')" 'déjà été annulé' "deuxième annulation refusée"
 has "$(curl -s "$U/t/$JETON")" 'Ticket annulé par le ticket' "le ticket d'origine affiche son annulation"
+echo "Historique, duplicata, recette"
+H=$(curl -s -b "$J" "$U/historique.php")
+has "$H" "N° " "historique du jour"
+has "$H" "data-duplicata=\"$ID\"" "bouton Réimprimer sur le ticket encaissé"
+R=$(A duplicata '{"ticketId":'$ID'}'); NDUP=$(printf '%s' "$R" | grep -oP '"numero":\K\d+')
+has "$R" '"ok":true' "duplicata enregistré (n° $NDUP)"
+has "$(curl -s "$U/t/$JETON?duplicata=$NDUP")" "DUPLICATA n° $NDUP" "le duplicata porte la mention DUPLICATA"
+ok "$(curl -s "$U/t/$JETON?duplicata=999" | grep -c 'DUPLICATA n°')" "0" "numéro de duplicata inexistant : pas de mention"
+has "$(curl -s -b "$J" "$U/historique.php?numero=1")" "N° 000001" "recherche par numéro"
+REC=$(curl -s -b "$J" "$U/recette.php")
+has "$REC" "Chiffre d'affaires net" "recette du jour"
+ok "$(curl -s -o /dev/null -w '%{redirect_url}' "$U/recette.php")" "$U/login.php" "recette sans session → connexion"
+ok "$(curl -s -o /dev/null -w '%{redirect_url}' "$U/z.php?id=1")" "$U/login.php" "Z sans session → connexion"
+
 echo "Tickets en attente"
 R=$(A attente_mettre '{"ticket":'"$TK"'}'); AID=$(printf '%s' "$R" | grep -oP '"id":\K\d+')
 has "$R" '"ok":true' "mise en attente"

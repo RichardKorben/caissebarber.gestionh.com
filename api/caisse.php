@@ -12,9 +12,13 @@
  *   POST ?action=attente_supprimer    {id}
  *   POST ?action=encaisser            {ticket, paiements:[{moyen, montant, recu?}], totalAffiche, cle}
  *   POST ?action=annuler              {ticketId, motif}   (gérant)
+ *   POST ?action=duplicata            {ticketId}           → numéro du duplicata (impression)
+ *   POST ?action=ouvrir               {fond}               ouverture de la caisse du jour
+ *   POST ?action=cloturer             {especesComptees}    clôture journalière (Z)
  */
 declare(strict_types=1);
 
+use BarberPay\Clotures;
 use BarberPay\ConflitCatalogue;
 use BarberPay\TicketsAttente;
 use BarberPay\Ventes;
@@ -86,6 +90,7 @@ try {
         case 'encaisser':
             $exigerPost();
             $caisse->toucher();
+            (new Clotures($con, $tenant, $journal))->rattraper(); // journées oubliées : clôturées avant de vendre
             $corps = api_corps();
             $totalAffiche = $corps['totalAffiche'] ?? null;
             $cle = $corps['cle'] ?? null;
@@ -110,6 +115,34 @@ try {
             $corps = api_corps();
             $annulation = (new Ventes($con, $tenant, $journal))->annuler((int) ($corps['ticketId'] ?? 0), (int) $operateur['id'], (string) ($corps['motif'] ?? ''));
             api_reponse(['ok' => true, 'annulation' => $annulation + ['numeroAffiche' => Ventes::numeroAffiche($annulation['numero'])]]);
+
+        case 'duplicata':
+            $exigerPost();
+            $caisse->toucher();
+            $duplicata = (new Ventes($con, $tenant, $journal))->duplicata((int) (api_corps()['ticketId'] ?? 0), (int) $operateur['id']);
+            api_reponse(['ok' => true, 'duplicata' => $duplicata]);
+
+        case 'ouvrir':
+            $exigerPost();
+            $caisse->toucher();
+            $fond = api_corps()['fond'] ?? null;
+            if (!is_int($fond)) {
+                api_erreur('Fond de caisse invalide.');
+            }
+            (new Clotures($con, $tenant, $journal))->ouvrir($fond, (int) $operateur['id']);
+            api_reponse(['ok' => true]);
+
+        case 'cloturer':
+            $exigerPost();
+            $caisse->toucher();
+            $comptees = api_corps()['especesComptees'] ?? null;
+            if ($comptees !== null && !is_int($comptees)) {
+                api_erreur('Comptage des espèces invalide.');
+            }
+            $clotures = new Clotures($con, $tenant, $journal);
+            $clotures->rattraper();
+            $z = $clotures->cloturerJour(date('Y-m-d'), (int) $operateur['id'], false, $comptees);
+            api_reponse(['ok' => true, 'cloture' => ['id' => $z['id'], 'numero' => $z['numero'], 'net_ttc' => $z['net_ttc'], 'ecart' => $z['ecart']]]);
 
         default:
             api_erreur('Action inconnue.', 404);

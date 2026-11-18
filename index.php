@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 use BarberPay\Articles;
 use BarberPay\Caisse;
+use BarberPay\Clotures;
 use BarberPay\Csrf;
 use BarberPay\Parametres;
 use BarberPay\TicketsAttente;
@@ -22,6 +23,9 @@ if ($auth->utilisateur() === null) {
 
 $parametres = (new Parametres($con, $tenant))->charger();
 $caisse = new Caisse($con, (int) $parametres['verrouillage_minutes']);
+$clotures = new Clotures($con, $tenant, $journal);
+$clotures->rattraper(); // journées oubliées clôturées automatiquement
+$parametres = (new Parametres($con, $tenant))->charger(); // le régime de TVA a pu changer à la clôture
 $operateur = $caisse->operateur();
 $articles = new Articles($con);
 
@@ -57,6 +61,7 @@ $donnees = [
     'membres' => $membres,
     'articles' => $catalogue,
     'attente' => (new TicketsAttente($con))->nombre(),
+    'journeeCloturee' => $clotures->journeeCloturee(date('Y-m-d')),
 ];
 $animation = (int) $parametres['animation_poteau'] === 1;
 
@@ -109,8 +114,8 @@ function icone(string $nom, int $taille = 24): string
             <button type="button" class="bouton-categorie" data-action="montant-libre"><?= icone('libre', 26) ?><span>Montant libre</span></button>
         </div>
         <div class="outils">
-            <button type="button" class="bouton-outil" data-action="bientot" data-etape="4" data-nom="L'historique des tickets"><?= icone('historique', 20) ?><span>Historique</span></button>
-            <button type="button" class="bouton-outil" data-action="bientot" data-etape="4" data-nom="La recette du jour"><?= icone('recette', 20) ?><span>Recette</span></button>
+            <a class="bouton-outil" href="/historique.php"><?= icone('historique', 20) ?><span>Historique</span></a>
+            <a class="bouton-outil" href="/recette.php"><?= icone('recette', 20) ?><span>Recette</span></a>
             <a class="bouton-outil" href="/admin/" id="lien-admin"><?= icone('admin', 20) ?><span>Admin</span></a>
             <button type="button" class="bouton-outil" data-action="verrouiller" id="bouton-verrouiller"><?= icone('cadenas', 20) ?><span>Verrouiller</span></button>
         </div>

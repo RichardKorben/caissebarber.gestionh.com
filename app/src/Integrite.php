@@ -17,7 +17,7 @@ final class Integrite
     }
 
     /**
-     * @return array{ok: bool, tickets: int, evenements: int, erreurs: list<string>}
+     * @return array{ok: bool, tickets: int, evenements: int, clotures: int, erreurs: list<string>}
      */
     public function verifier(): array
     {
@@ -88,7 +88,42 @@ final class Integrite
         }
         $this->verifierCompteur('journal', $attendu - 1, $precedente, $erreurs);
 
-        return ['ok' => !$erreurs, 'tickets' => $nbTickets, 'evenements' => $nbEvenements, 'erreurs' => $erreurs];
+        // Clôtures : chaînage, signature, et totaux recalculés à partir des tickets.
+        $clotures = new Clotures($this->con, $this->tenant, new Journal($this->con, $this->tenant));
+        $precedente = '';
+        $attendu = 1;
+        $nbClotures = 0;
+        foreach ($this->con->query('SELECT * FROM clotures ORDER BY numero') as $c) {
+            $nbClotures++;
+            $nom = 'Clôture n° ' . $c['numero'] . ' (' . $c['type'] . ' ' . $c['periode'] . ')';
+            if ((int) $c['numero'] !== $attendu) {
+                $erreurs[] = $nom . ' : numérotation des clôtures rompue.';
+                $attendu = (int) $c['numero'];
+            }
+            if ($c['hash_precedent'] !== $precedente) {
+                $erreurs[] = $nom . ' : chaînage des clôtures rompu.';
+            }
+            if (Chaine::empreinte((string) $c['hash_precedent'], Clotures::canonique($c)) !== $c['hash']) {
+                $erreurs[] = $nom . ' : contenu modifié après enregistrement.';
+            }
+            if (!$signature->verifier((string) $c['hash'], (string) $c['signature'])) {
+                $erreurs[] = $nom . ' : signature invalide.';
+            }
+            [$debut, $fin] = match ($c['type']) {
+                'jour' => [$c['periode'], Clotures::lendemain((string) $c['periode'])],
+                'mois' => [$c['periode'] . '-01', (new \DateTimeImmutable($c['periode'] . '-01'))->modify('first day of next month')->format('Y-m-d')],
+                default => [$c['periode'] . '-01-01', ((int) $c['periode'] + 1) . '-01-01'],
+            };
+            $t = $clotures->totaux($debut, $fin);
+            if ($t['net_ttc'] !== (int) $c['net_ttc'] || $t['nb_ventes'] !== (int) $c['nb_ventes'] || $t['grand_total'] !== (int) $c['grand_total']) {
+                $erreurs[] = $nom . ' : les tickets de la période ne correspondent plus aux totaux clôturés.';
+            }
+            $precedente = (string) $c['hash'];
+            $attendu++;
+        }
+        $this->verifierCompteur('cloture', $attendu - 1, $precedente, $erreurs);
+
+        return ['ok' => !$erreurs, 'tickets' => $nbTickets, 'evenements' => $nbEvenements, 'clotures' => $nbClotures, 'erreurs' => $erreurs];
     }
 
     /** Le compteur doit pointer sur le dernier enregistrement (sinon : derniers enregistrements supprimés). */

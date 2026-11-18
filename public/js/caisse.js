@@ -311,7 +311,7 @@
     var total = $('total');
     total.textContent = C.format(calcul.total);
     total.classList.toggle('long', calcul.total >= 100000);
-    $('bouton-encaisser').disabled = vide;
+    $('bouton-encaisser').disabled = vide || D.journeeCloturee;
     $('bouton-remise').classList.toggle('actif', !!etat.ticket.remise);
     $('bouton-remise').lastChild.textContent = etat.ticket.remise ? 'Remise ' + libelleRemise(etat.ticket.remise) : 'Remise';
     afficherBarbier();
@@ -738,6 +738,7 @@
       });
     }
 
+    var imprime = false;
     function succes(v) {
       var qr = el('div', { classe: 'qr', 'aria-hidden': 'true' });
       if (window.qrcode) {
@@ -752,7 +753,14 @@
         qr,
         el('p', { classe: 'qr-texte', texte: window.qrcode ? 'Le client scanne ce code pour récupérer son ticket.' : 'Lien du ticket en ligne, à transmettre au client.' }),
         actions([
-          bouton('Imprimer', '', function () { imprimer(v.jeton); }),
+          bouton('Imprimer', '', function () {
+            // 1re impression : l'original ; les suivantes sont des duplicatas numérotés (règle anti-fraude).
+            if (!imprime) { imprime = true; imprimer(v.jeton); return; }
+            api('duplicata', { ticketId: v.id }).then(function (r) {
+              imprimer(v.jeton, r.duplicata.numero);
+              toast('Duplicata n° ' + r.duplicata.numero + ' envoyé à l\'impression.');
+            }, function (e) { toast(e.message, true); });
+          }),
           bouton('Nouveau ticket', 'principal', fermer)
         ])
       ];
@@ -763,10 +771,10 @@
   }
 
   /** Impression du ticket (format 80 mm) sans quitter la caisse. */
-  function imprimer(jeton) {
+  function imprimer(jeton, duplicata) {
     var ancien = document.getElementById('cadre-impression');
     if (ancien) { ancien.remove(); }
-    var cadre = el('iframe', { id: 'cadre-impression', title: 'Impression du ticket', src: '/t/' + jeton + '?imprimer=1', style: 'position:fixed;width:0;height:0;border:0;left:-9999px' });
+    var cadre = el('iframe', { id: 'cadre-impression', title: 'Impression du ticket', src: '/t/' + jeton + '?imprimer=1' + (duplicata ? '&duplicata=' + duplicata : ''), style: 'position:fixed;width:0;height:0;border:0;left:-9999px' });
     document.body.appendChild(cadre);
   }
 
@@ -955,6 +963,10 @@
     afficherGrille();
     afficherTicket();
     majBadgeAttente();
+    if (D.journeeCloturee) {
+      $('bouton-encaisser').setAttribute('title', 'Journée clôturée');
+      toast('La journée est clôturée (Z fait) : les encaissements reprendront demain.');
+    }
     if (D.verrouillage && !etat.operateur) { afficherVerrou(); }
   }
 

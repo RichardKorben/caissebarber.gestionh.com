@@ -21,6 +21,8 @@ etape "Calcul : PHP et JavaScript identiques"
 lancer node tests/calcul.js "$TMP/calcul.json" && lancer $PHP tests/calcul.php "$TMP/calcul.json"
 etape "Module fiscal (base de test BARBER_dev2)"
 lancer $PHP tests/fiscal.php
+etape "Journées, Z, mois, année (base temporaire, horloge simulée)"
+lancer $PHP tests/journee.php
 
 if [ "${1:-}" = "tout" ]; then
   if [ -z "${BP_TEST_EMAIL:-}" ] || [ -z "${BP_TEST_MDP:-}" ]; then

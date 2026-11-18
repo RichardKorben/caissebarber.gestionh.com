@@ -22,7 +22,7 @@ $valeurs = [
     'telephone' => (string) ($p['telephone'] ?? ''),
     'siret' => (string) ($p['siret'] ?? ''),
     'tva_intracom' => (string) ($p['tva_intracom'] ?? ''),
-    'regime_tva' => (string) $p['regime_tva'],
+    'regime_tva' => (string) ($p['regime_tva_a_venir'] ?? $p['regime_tva']),
     'seuil_services' => Montant::saisie((int) $p['seuil_services']),
     'seuil_services_majore' => Montant::saisie((int) $p['seuil_services_majore']),
     'seuil_ventes' => Montant::saisie((int) $p['seuil_ventes']),
@@ -37,7 +37,9 @@ if (admin_post()) {
     $valeurs['animation_poteau'] = empty($_POST['animation_poteau']) ? '0' : '1';
     $erreurs = $parametres->enregistrer($_POST, Database::commune());
     if (!$erreurs) {
-        Flash::succes('Informations du salon enregistrées.');
+        $apres = $parametres->charger();
+        Flash::succes('Informations du salon enregistrées.' . ($apres['regime_tva_a_venir'] !== null
+            ? ' Le changement de régime de TVA sera appliqué à la clôture de la journée (des ventes ont déjà eu lieu aujourd\'hui).' : ''));
         admin_rediriger('/admin/salon.php');
     }
 }
@@ -74,6 +76,9 @@ admin_haut('Salon', 'salon');
 
     <section class="carte" aria-labelledby="titre-tva">
         <h2 id="titre-tva">TVA</h2>
+        <?php if ($p['regime_tva_a_venir'] !== null): ?>
+            <p class="flash flash-succes">Changement de régime en attente : appliqué à la clôture de la journée (Z).</p>
+        <?php endif; ?>
         <fieldset>
             <legend>Régime de TVA</legend>
             <div class="choix">

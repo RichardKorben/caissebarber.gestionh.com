@@ -125,8 +125,26 @@ final class Parametres
                 $changements[$champ] = ['avant' => $avant[$champ], 'apres' => $valeur];
             }
         }
-        if ($avant['regime_tva'] !== $v['regime_tva']) {
-            $this->journal?->ecrire(Journal::REGIME_TVA_MODIFIE, ['avant' => $avant['regime_tva'], 'apres' => $v['regime_tva']], $this->operateurId, null, true);
+        // Régime de TVA : si la journée a déjà des ventes non clôturées, le changement attend le Z du jour
+        // (une journée ne mélange jamais deux régimes).
+        $souhaite = $v['regime_tva'];
+        $enAttente = $avant['regime_tva_a_venir'] ?? null;
+        if ($souhaite === $avant['regime_tva']) {
+            if ($enAttente !== null) {
+                $this->con->query('UPDATE parametres SET regime_tva_a_venir = NULL WHERE id = 1');
+            }
+        } elseif ($souhaite !== $enAttente) {
+            $differe = $this->ventesNonClotureesAujourdhui();
+            if ($differe) {
+                $requete = $this->con->prepare('UPDATE parametres SET regime_tva = ?, regime_tva_a_venir = ? WHERE id = 1');
+                $actuel = (string) $avant['regime_tva'];
+                $requete->bind_param('ss', $actuel, $souhaite);
+                $requete->execute();
+            } else {
+                $this->con->query('UPDATE parametres SET regime_tva_a_venir = NULL WHERE id = 1');
+            }
+            $this->journal?->ecrire(Journal::REGIME_TVA_MODIFIE, ['avant' => $avant['regime_tva'], 'apres' => $souhaite,
+                'application' => $differe ? 'à la clôture du jour' : 'immédiate'], $this->operateurId, null, true);
         }
         if ($changements) {
             $this->journal?->ecrire(Journal::PARAMETRES_MODIFIES, ['changements' => $changements], $this->operateurId, null, true);
@@ -139,6 +157,20 @@ final class Parametres
         $maj->bind_param('si', $v['nom_salon'], $id);
         $maj->execute();
         return [];
+    }
+
+    /** Y a-t-il aujourd'hui des tickets alors que le Z du jour n'est pas fait ? */
+    private function ventesNonClotureesAujourdhui(): bool
+    {
+        $jour = Horloge::date('Y-m-d');
+        $de = $jour . ' 00:00:00';
+        $requete = $this->con->prepare(
+            "SELECT 1 FROM tickets WHERE chaine = 'reel' AND date_ticket >= ?
+               AND NOT EXISTS (SELECT 1 FROM clotures WHERE type = 'jour' AND periode = ?) LIMIT 1"
+        );
+        $requete->bind_param('ss', $de, $jour);
+        $requete->execute();
+        return (bool) $requete->get_result()->fetch_row();
     }
 
     /** SIRET : 14 chiffres et clé de Luhn (sauf La Poste, SIREN 356000000, qui a sa propre règle). */
