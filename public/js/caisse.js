@@ -311,7 +311,7 @@
     var total = $('total');
     total.textContent = C.format(calcul.total);
     total.classList.toggle('long', calcul.total >= 100000);
-    $('bouton-encaisser').disabled = vide || D.journeeCloturee;
+    $('bouton-encaisser').disabled = vide || (D.journeeCloturee && !D.formation);
     $('bouton-remise').classList.toggle('actif', !!etat.ticket.remise);
     $('bouton-remise').lastChild.textContent = etat.ticket.remise ? 'Remise ' + libelleRemise(etat.ticket.remise) : 'Remise';
     afficherBarbier();
@@ -748,7 +748,7 @@
         qr.appendChild(el('p', { classe: 'qr-lien', texte: v.url }));
       }
       var contenu = [
-        el('p', { classe: 'encaisse-numero', texte: 'Ticket n° ' + v.numeroAffiche + (v.deja ? ' (déjà enregistré)' : '') }),
+        el('p', { classe: 'encaisse-numero', texte: (v.formation ? 'Ticket de FORMATION n° ' : 'Ticket n° ') + v.numeroAffiche + (v.deja ? ' (déjà enregistré)' : '') }),
         v.rendu ? el('p', { classe: 'encaisse-rendu grand', texte: 'À rendre : ' + C.format(v.rendu) }) : null,
         qr,
         el('p', { classe: 'qr-texte', texte: window.qrcode ? 'Le client scanne ce code pour récupérer son ticket.' : 'Lien du ticket en ligne, à transmettre au client.' }),
@@ -963,7 +963,7 @@
     afficherGrille();
     afficherTicket();
     majBadgeAttente();
-    if (D.journeeCloturee) {
+    if (D.journeeCloturee && !D.formation) {
       $('bouton-encaisser').setAttribute('title', 'Journée clôturée');
       toast('La journée est clôturée (Z fait) : les encaissements reprendront demain.');
     }

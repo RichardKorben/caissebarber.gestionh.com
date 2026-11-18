@@ -1,0 +1,31 @@
+/* BarberPay — attestation de l'éditeur (A4). */
+@font-face { font-family: "Inter"; font-weight: 400; src: url("../fonts/inter-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 600; src: url("../fonts/inter-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Oswald"; font-weight: 600; src: url("../fonts/oswald-latin-600-normal.woff2") format("woff2"); }
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: #121212; color: #111; font: 14px/1.5 "Inter", system-ui, sans-serif; padding: 24px 16px; }
+.page { max-width: 760px; margin: 0 auto; background: #fff; padding: 40px 48px; border-radius: 8px; position: relative; }
+.page.brouillon::after { content: "BROUILLON"; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) rotate(-25deg); font: 600 96px "Oswald", sans-serif; color: rgba(200, 16, 46, .12); pointer-events: none; }
+h1 { font-family: "Oswald", sans-serif; font-weight: 600; font-size: 26px; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px; }
+.sous-titre { color: #444; margin: 0 0 20px; }
+h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin: 22px 0 8px; }
+dl { margin: 0; }
+dl div { display: flex; gap: 12px; padding: 3px 0; }
+dt { width: 160px; flex: 0 0 160px; color: #555; }
+dd { margin: 0; font-weight: 600; }
+ul { padding-left: 20px; }
+li { margin-bottom: 6px; }
+.signature { margin-top: 28px; }
+.signature p { margin: 0 0 4px; }
+.zone-signature { margin-top: 12px !important; height: 70px; border: 1px dashed #bbb; border-radius: 6px; padding: 6px 10px; color: #999; width: 280px; }
+.note { margin-top: 24px; font-size: 12px; color: #666; }
+.avertissement { max-width: 760px; margin: 0 auto 12px; background: #FFE1DD; color: #8B1A10; padding: 12px 16px; border-radius: 8px; font-weight: 600; }
+.actions { max-width: 760px; margin: 16px auto 0; display: flex; gap: 16px; align-items: center; }
+.actions button { min-height: 48px; padding: 0 20px; border-radius: 12px; border: 0; background: #C9A44C; color: #0A0A0A; font: 600 15px "Inter", sans-serif; cursor: pointer; }
+.actions a { color: #C9A44C; font-weight: 600; }
+@media print {
+  @page { size: A4; margin: 18mm; }
+  body { background: #fff; padding: 0; }
+  .page { padding: 0; border-radius: 0; max-width: none; }
+  .non-imprime { display: none; }
+}

@@ -185,3 +185,42 @@ legend { font-size: 14px; font-weight: 600; color: var(--text-side-inactive); ma
   .ligne { grid-template-columns: 1fr; }
   .ligne-prix { margin-left: 0; }
 }
+
+/* ── Exports et conformité (étape 5) ───────────────────────────────── */
+.raccourcis-periode { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 4px; }
+.formulaire-periode { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-bottom: 8px; }
+.formulaire-periode .champ { flex: 0 1 200px; }
+.formulaire-periode input[type="date"], .navigation-jours input[type="date"] {
+  width: 100%; height: 48px; padding: 0 12px; background: var(--bg-app); color: var(--text-on-dark);
+  border: 1px solid var(--border-dark); border-radius: var(--r-sm); font: inherit; color-scheme: dark;
+}
+.liste-exports { margin-top: 16px; }
+.liste-exports .ligne { background: var(--bg-app); }
+.liste-exports .ligne-meta { flex-basis: 100%; }
+.entete-carte { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
+.annees { display: flex; gap: 8px; }
+.tableau-admin { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
+.tableau-admin th { text-align: left; color: var(--text-side); font-weight: 600; font-size: 13px; padding: 8px 6px; border-bottom: 1px solid var(--border-dark); }
+.tableau-admin td { padding: 8px 6px; border-bottom: 1px solid var(--border-dark); }
+.tableau-admin th:last-child, .tableau-admin td:last-child { text-align: right; white-space: nowrap; }
+.tableau-admin:not(.livre) td + td, .tableau-admin:not(.livre) th + th { text-align: right; white-space: nowrap; }
+.tableau-admin .sous-total td { color: var(--gold-hover); font-weight: 600; }
+.tableau-admin .total td { font-weight: 700; border-top: 2px solid var(--text-side); }
+.tableau-admin .negatif td { color: #F2B08F; }
+.jauge { margin-top: 14px; }
+.jauge-texte { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; font-size: 14px; }
+.jauge-texte span { color: var(--text-side); }
+.jauge-barre { height: 10px; background: var(--bg-app); border-radius: 5px; overflow: hidden; margin-top: 6px; border: 1px solid var(--border-dark); }
+.jauge-barre span { display: block; height: 100%; background: #8FBF7F; }
+.jauge-proche .jauge-barre span { background: var(--gold); }
+.jauge-depasse .jauge-barre span { background: var(--danger); }
+.erreurs-integrite { color: var(--danger); margin: 0 0 12px; padding-left: 20px; }
+.carte-formation { border-color: #E08A5E; }
+@media print {
+  body.admin { background: #fff; color: #000; }
+  .barre-laterale, .non-imprime, .lien-evitement { display: none !important; }
+  .admin-contenu { padding: 0; max-width: none; }
+  .entete-page h1 { font-size: 20px; color: #000; }
+  .tableau-admin { font-size: 10px; }
+  .tableau-admin th, .tableau-admin td { color: #000 !important; border-color: #bbb; }
+}

@@ -62,6 +62,7 @@ $donnees = [
     'articles' => $catalogue,
     'attente' => (new TicketsAttente($con))->nombre(),
     'journeeCloturee' => $clotures->journeeCloturee(date('Y-m-d')),
+    'formation' => !empty($_SESSION['formation']),
 ];
 $animation = (int) $parametres['animation_poteau'] === 1;
 
@@ -99,7 +100,10 @@ function icone(string $nom, int $taille = 24): string
     <link rel="stylesheet" href="/public/css/caisse.css?v=<?= e(BarberPay\VERSION) ?>">
 </head>
 <body class="caisse">
-<div class="app" id="app">
+<?php if (!empty($_SESSION['formation'])): ?>
+<div class="bandeau-formation" role="status">MODE FORMATION — tickets sans valeur, non comptabilisés. <a href="/admin/conformite.php">Quitter</a></div>
+<?php endif; ?>
+<div class="app<?= !empty($_SESSION['formation']) ? ' app-formation' : '' ?>" id="app">
     <!-- 1. Barre latérale -->
     <nav class="barre" aria-label="Caisse">
         <div class="logo" aria-hidden="true">

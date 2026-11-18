@@ -62,6 +62,20 @@ has "$REC" "Chiffre d'affaires net" "recette du jour"
 ok "$(curl -s -o /dev/null -w '%{redirect_url}' "$U/recette.php")" "$U/login.php" "recette sans session → connexion"
 ok "$(curl -s -o /dev/null -w '%{redirect_url}' "$U/z.php?id=1")" "$U/login.php" "Z sans session → connexion"
 
+echo "Exports et conformité (admin)"
+AUJ=$(date +%Y-%m-%d); DEB=$(date +%Y-%m-01)
+has "$(curl -s -b "$J" "$U/admin/exports.php")" "Récapitulatif URSSAF" "page Exports"
+has "$(curl -s -b "$J" "$U/admin/livre.php?debut=$DEB&fin=$AUJ")" "Livre des recettes" "livre des recettes à l'écran"
+ok "$(curl -s -b "$J" -o /dev/null -w '%{content_type}' "$U/admin/telecharger.php?quoi=livre&debut=$DEB&fin=$AUJ")" "text/csv; charset=UTF-8" "livre des recettes en CSV"
+has "$(curl -s -b "$J" "$U/admin/telecharger.php?quoi=ereporting-json&debut=$DEB&fin=$AUJ")" '"totaux_journaliers"' "e-reporting en JSON"
+curl -s -b "$J" -o "$TMP/fiscal.zip" "$U/admin/telecharger.php?quoi=fiscal&debut=$DEB&fin=$AUJ"
+has "$(unzip -l "$TMP/fiscal.zip" 2>/dev/null)" "cle_publique_ed25519.txt" "export pour contrôle fiscal (ZIP)"
+ok "$(curl -s -b "$J" -o /dev/null -w '%{redirect_url}' "$U/admin/telecharger.php?quoi=fiscal&debut=2026-13-01&fin=$AUJ")" "$U/admin/exports.php" "période invalide refusée"
+C=$(curl -s -b "$J" "$U/admin/conformite.php"); CC=$(printf '%s' "$C" | grep -oP 'name="csrf" value="\K[^"]+' | head -1)
+has "$(curl -s -b "$J" -L --data-urlencode "csrf=$CC" --data-urlencode action=integrite "$U/admin/conformite.php")" "Intègre" "contrôle d'intégrité depuis l'admin"
+has "$(curl -s -b "$J" "$U/admin/attestation.php")" "Attestation individuelle" "attestation de l'éditeur"
+ok "$(curl -s -o /dev/null -w '%{redirect_url}' "$U/admin/telecharger.php?quoi=fiscal&debut=$DEB&fin=$AUJ")" "$U/login.php" "export sans session → connexion"
+
 echo "Tickets en attente"
 R=$(A attente_mettre '{"ticket":'"$TK"'}'); AID=$(printf '%s' "$R" | grep -oP '"id":\K\d+')
 has "$R" '"ok":true' "mise en attente"

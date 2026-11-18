@@ -123,6 +123,14 @@ final class Integrite
         }
         $this->verifierCompteur('cloture', $attendu - 1, $precedente, $erreurs);
 
+        // Archives : le fichier ZIP doit correspondre à l'empreinte signée.
+        $archives = new Archives($this->con, $this->tenant, new Journal($this->con, $this->tenant));
+        foreach ($this->con->query('SELECT * FROM archives ORDER BY id') as $archive) {
+            if (!$archives->verifier($archive)) {
+                $erreurs[] = 'Archive ' . $archive['fichier'] . ' : fichier absent ou modifié (empreinte ou signature invalide).';
+            }
+        }
+
         return ['ok' => !$erreurs, 'tickets' => $nbTickets, 'evenements' => $nbEvenements, 'clotures' => $nbClotures, 'erreurs' => $erreurs];
     }
 

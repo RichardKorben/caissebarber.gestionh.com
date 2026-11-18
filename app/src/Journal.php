@@ -26,6 +26,9 @@ final class Journal
     public const CLOTURE = 'CLOTURE';
     public const DUPLICATA = 'DUPLICATA';
     public const REGIME_TVA_APPLIQUE = 'REGIME_TVA_APPLIQUE';
+    public const ARCHIVE = 'ARCHIVE';
+    public const EXPORT = 'EXPORT';
+    public const MODE_FORMATION = 'MODE_FORMATION';
 
     public function __construct(private readonly mysqli $con, private readonly Tenant $tenant)
     {

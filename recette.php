@@ -43,6 +43,20 @@ poste_haut('Recette', 'recette');
     </div>
 </div>
 
+<?php
+// Suivi des seuils de franchise (année civile en cours) : alerte à 80 %, puis au dépassement.
+if ($franchise) {
+    $ca = (new BarberPay\Exports($con, $tenant))->chiffreAnnee((int) date('Y'));
+    foreach ([['prestations de services', $ca['services'], (int) $parametres['seuil_services'], (int) $parametres['seuil_services_majore']],
+              ['chiffre d\'affaires total', $ca['total'], (int) $parametres['seuil_ventes'], (int) $parametres['seuil_ventes_majore']]] as [$libelle, $valeur, $seuil, $majore]) {
+        if ($valeur >= $majore) {
+            echo '<p class="flash flash-erreur" role="alert">Seuil majoré de franchise dépassé (' . e($libelle) . ' : ' . e($m($valeur)) . ' pour ' . e($m($majore)) . ') : la TVA est due. Passez au régime « assujetti » dans Admin → Salon et parlez-en à votre comptable.</p>';
+        } elseif ($valeur >= intdiv($seuil * 8, 10)) {
+            echo '<p class="flash flash-succes">Attention : ' . e($libelle) . ' à ' . (int) floor($valeur * 100 / max(1, $seuil)) . ' % du seuil de franchise (' . e($m($valeur)) . ' sur ' . e($m($seuil)) . '). Détail dans Admin → Exports.</p>';
+        }
+    }
+}
+?>
 <?php if ($aVenir !== null): ?>
     <p class="flash flash-succes">Le passage au régime « <?= $aVenir === Parametres::FRANCHISE ? 'franchise de TVA' : 'assujetti à la TVA' ?> » sera appliqué à la clôture de la journée.</p>
 <?php endif; ?>

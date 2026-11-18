@@ -23,6 +23,8 @@ etape "Module fiscal (base de test BARBER_dev2)"
 lancer $PHP tests/fiscal.php
 etape "Journées, Z, mois, année (base temporaire, horloge simulée)"
 lancer $PHP tests/journee.php
+etape "Exports, archives, mode formation (base temporaire)"
+lancer $PHP tests/exports.php
 
 if [ "${1:-}" = "tout" ]; then
   if [ -z "${BP_TEST_EMAIL:-}" ] || [ -z "${BP_TEST_MDP:-}" ]; then

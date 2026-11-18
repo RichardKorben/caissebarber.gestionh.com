@@ -63,6 +63,8 @@ function admin_haut(string $titre, string $actif): void
         'catalogue' => ['/admin/catalogue.php', 'Catalogue', 'catalogue'],
         'equipe' => ['/admin/equipe.php', 'Équipe', 'equipe'],
         'salon' => ['/admin/salon.php', 'Salon', 'salon'],
+        'exports' => ['/admin/exports.php', 'Exports', 'export'],
+        'conformite' => ['/admin/conformite.php', 'Conformité', 'bouclier'],
     ];
     ?>
 <!doctype html>

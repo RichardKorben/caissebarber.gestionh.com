@@ -13,7 +13,8 @@
 ├── z.php               édition d'une clôture (écran ou 80 mm)
 ├── verrouiller.php     verrouillage depuis l'Historique / la Recette
 ├── logout.php          déconnexion (POST + jeton uniquement)
-├── admin/              administration (gérant) : catalogue.php, article.php, equipe.php, membre.php, salon.php
+├── admin/              administration (gérant) : catalogue, article, equipe, membre, salon, exports, livre,
+│                       telecharger, conformite, attestation
 ├── public/             fichiers statiques : css/, fonts/ (Inter, Oswald), js/ (calcul.js, caisse.js)
 ├── app/                code serveur — accès web refusé (app/.htaccess)
 │   ├── bootstrap.php   chargement commun (constantes, autoload BarberPay\…, fuseau, mysqli en exceptions)
@@ -22,9 +23,11 @@
 │   ├── api.php         démarrage d'un point d'accès JSON (session + jeton CSRF en en-tête X-CSRF-Token)
 │   ├── poste.php       démarrage des écrans Historique / Recette (caisse déverrouillée) + mise en page
 │   ├── admin_outils.php icone(), champ() partagés
+│   ├── editeur.php     identité de l'éditeur pour l'attestation (À COMPLÉTER)
 │   ├── src/            classes : Database, Tenant, Session, Csrf, Auth, Migrator,
 │   │                   Montant, Tva, Flash, Parametres, Articles, Equipe, Calcul, Caisse, TicketsAttente,
-│   │                   Ventes, Chaine, Signature, Journal, Integrite, ConflitCatalogue, Clotures, Horloge
+│   │                   Ventes, Chaine, Signature, Journal, Integrite, ConflitCatalogue, Clotures, Horloge,
+│   │                   Exports, Archives
 │   ├── migrations/
 │   │   ├── main/       migrations de GH_main (tables barberpay_*)
 │   │   └── tenant/     migrations de chaque base de barber
@@ -160,3 +163,22 @@ npm install --prefix tests                                     # une fois : jsdo
   numéroté (`duplicatas`, journal), et le ticket imprimé porte « DUPLICATA n° X ».
 - **Horloge** : les dates du module fiscal passent par `Horloge::date()` ; les tests la fixent, jamais le site.
 - Le contrôle d'intégrité vérifie aussi les clôtures : chaînage, signature, et **totaux recalculés à partir des tickets**.
+
+## Exports et conformité (étape 5)
+- **Admin → Exports** : livre des recettes (écran imprimable A4 et CSV), journal des ventes (CSV comptable), e-reporting
+  B2C (CSV / JSON, **format provisoire** à aligner sur les spécifications DGFiP avant septembre 2027), export pour un
+  contrôle fiscal (ZIP : CSV de toutes les tables de la période, clé publique, notice de vérification, résultat du
+  contrôle d'intégrité), récapitulatif URSSAF (services / produits, par mois et trimestre), jauges des seuils de
+  franchise. Chaque export est inscrit au journal (`EXPORT`). CSV : séparateur « ; », UTF-8 avec BOM (Excel).
+- **Archives** : une par clôture mensuelle ou annuelle, créée au premier téléchargement dans
+  `/var/kdSite/barberpay/archives/<sous-domaine>/`, empreinte SHA-256 signée dans la table `archives` (ajout seul).
+  Une archive modifiée est signalée par le contrôle d'intégrité et son téléchargement est refusé. **À sauvegarder
+  avec les clés.**
+- **Admin → Conformité** : contrôle d'intégrité (inscrit au journal), archives, attestation, mode formation.
+- **Attestation de l'éditeur** (`admin/attestation.php`) : reprend `app/editeur.php`. Tant qu'un champ vaut
+  « À COMPLÉTER », elle s'affiche en BROUILLON et ne s'imprime pas. Le texte est à relire contre le modèle officiel
+  (BOFiP, BOI-LETTRE-000242) avant la première remise.
+- **Mode formation** : par poste (session), activé par le gérant dans Conformité. Tickets sur la chaîne `formation`
+  (compteur `ticket_formation`), bandeau orange en caisse et « MODE FORMATION » sur le ticket, exclus des totaux,
+  des Z, des exports et du stock, non annulables ; possibles même après le Z. Activation et désactivation au journal.
+- **Seuils de franchise** : alerte sur la Recette à 80 % du seuil, puis au dépassement du seuil majoré (année civile).

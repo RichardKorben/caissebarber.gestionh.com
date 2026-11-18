@@ -157,6 +157,11 @@ button { font: inherit; color: inherit; }
 .choix-membres button[aria-pressed="true"] { border-color: var(--gold); }
 .choix-membres .pastille, .verrou-membres .pastille { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
 
+/* ── Mode formation ─────────────────────────────────────────────────── */
+.bandeau-formation { position: fixed; top: 0; left: 0; right: 0; z-index: 40; background: #E08A5E; color: #0A0A0A; text-align: center; font-weight: 700; padding: 6px 12px; font-size: 14px; letter-spacing: .5px; }
+.bandeau-formation a { color: #0A0A0A; margin-left: 10px; }
+.app-formation { padding-top: 32px; }
+
 /* ── Encaissement ───────────────────────────────────────────────────── */
 .encaisse-total { font-family: var(--font-display); font-weight: 600; font-size: 44px; color: var(--text-on-dark) !important; text-align: center; margin: 0; line-height: 1.1; }
 .encaisse-reste { text-align: center; font-weight: 600; color: var(--gold-hover) !important; }

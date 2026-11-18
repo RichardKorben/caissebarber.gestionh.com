@@ -18,6 +18,8 @@ final class Ventes
 {
     public const MOYENS = ['cb' => 'Carte bancaire', 'especes' => 'Espèces', 'cheque' => 'Chèque', 'autre' => 'Autre'];
     public const REEL = 'reel';
+    /** Mode formation : numérotation et chaîne à part, exclu de tous les totaux, clôtures et exports. */
+    public const FORMATION = 'formation';
 
     public function __construct(
         private readonly mysqli $con,
@@ -32,7 +34,7 @@ final class Ventes
      * @param int|null $totalAffiche total vu par le caissier (contrôle : refus si le serveur trouve autre chose)
      * @return array{id:int, numero:int, jeton:string, total:int, rendu:int, deja:bool}
      */
-    public function encaisser(mixed $saisie, mixed $paiementsSaisis, ?int $totalAffiche, ?string $cle, int $operateurId): array
+    public function encaisser(mixed $saisie, mixed $paiementsSaisis, ?int $totalAffiche, ?string $cle, int $operateurId, bool $formation = false): array
     {
         if ($cle !== null) {
             if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $cle)) {
@@ -108,7 +110,7 @@ final class Ventes
         ], $calcul['tva']);
 
         $entete = [
-            'chaine' => self::REEL,
+            'chaine' => $formation ? self::FORMATION : self::REEL,
             'numero' => 0, // fixé dans la transaction
             'type' => 'vente',
             'ticket_origine_id' => null,
@@ -134,7 +136,9 @@ final class Ventes
         $this->con->begin_transaction();
         try {
             $id = $this->enregistrer($entete, $lignes, $tva, $paiements);
-            $this->mouvementsStock($lignes, 'vente', $id, $operateurId);
+            if (!$formation) { // le mode formation ne touche pas au stock
+                $this->mouvementsStock($lignes, 'vente', $id, $operateurId);
+            }
             $this->con->commit();
         } catch (Throwable $erreur) {
             $this->con->rollback();
@@ -361,7 +365,8 @@ final class Ventes
     /** Numérote, chaîne, signe et écrit le ticket. À appeler dans une transaction. */
     private function enregistrer(array $entete, array $lignes, array $tva, array $paiements): int
     {
-        $reservation = Chaine::reserver($this->con, 'ticket');
+        $compteur = $entete['chaine'] === self::FORMATION ? 'ticket_formation' : 'ticket';
+        $reservation = Chaine::reserver($this->con, $compteur);
         $entete['numero'] = $reservation['numero'];
         $entete['date_ticket'] = Horloge::date('Y-m-d H:i:s');
         // Après le Z du jour, la journée est fermée (contrôlé sous le verrou du compteur : pas de course avec le Z).
@@ -369,7 +374,8 @@ final class Ventes
         $z = $this->con->prepare("SELECT 1 FROM clotures WHERE type = 'jour' AND periode = ?");
         $z->bind_param('s', $jour);
         $z->execute();
-        if ($z->get_result()->fetch_row()) {
+        $journeeFermee = (bool) $z->get_result()->fetch_row(); // toujours lire le résultat (sinon la connexion se bloque)
+        if ($entete['chaine'] === self::REEL && $journeeFermee) {
             throw new InvalidArgumentException('La journée est clôturée (Z fait) : plus de vente ni d\'annulation aujourd\'hui. Elles reprendront demain.');
         }
         $empreinte = Chaine::empreinte($reservation['precedente'], self::canonique($entete, $lignes, $tva, $paiements));
@@ -416,7 +422,7 @@ final class Ventes
             $requete->bind_param('iisiii', $id, $p['rang'], $p['moyen'], $p['montant'], $p['recu'], $p['rendu']);
             $requete->execute();
         }
-        Chaine::avancer($this->con, 'ticket', $entete['numero'], $empreinte);
+        Chaine::avancer($this->con, $compteur, $entete['numero'], $empreinte);
         return $id;
     }
 

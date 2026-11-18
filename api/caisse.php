@@ -100,8 +100,10 @@ try {
                 is_int($totalAffiche) ? $totalAffiche : null,
                 is_string($cle) ? $cle : null,
                 (int) $operateur['id'],
+                !empty($_SESSION['formation']),
             );
             api_reponse(['ok' => true, 'vente' => $vente + [
+                'formation' => !empty($_SESSION['formation']),
                 'numeroAffiche' => Ventes::numeroAffiche($vente['numero']),
                 'url' => 'https://' . preg_replace('/:\d+$/', '', strtolower((string) $_SERVER['HTTP_HOST'])) . '/t/' . $vente['jeton'],
             ]]);
