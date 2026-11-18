@@ -1,0 +1,27 @@
+# Fichiers kd copiés dans le projet mais non utilisés par BarberPay (accès base, scripts du framework)
+/app/cnx.php
+/app/*/cnx.php
+/app/kdAutoload.php
+/app/kdGetPhoto.php
+/app/menuReorganiser-SrvPage.php
+/app/logoKd.png
+
+# Dossiers d'exécution
+/kdTemp/
+/storage/
+/temp/
+/var/
+
+# Journaux, sauvegardes, secrets éventuels
+*.log
+*.bak
+*.bak-*
+.env
+*.key
+*.pem
+
+# Éditeurs / système
+.DS_Store
+.idea/
+.vscode/
+.gstack/

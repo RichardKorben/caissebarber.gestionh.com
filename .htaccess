@@ -1,0 +1,32 @@
+# BarberPay — règles Apache de la racine web
+Options -Indexes
+DirectoryIndex index.php
+
+# Fichiers cachés (.git, .env, .htaccess…) jamais servis
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# Fichiers de travail jamais servis
+<FilesMatch "\.(md|sql|log|bak|sh|ini|json|lock)$">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "same-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    Header always set Strict-Transport-Security "max-age=31536000"
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Dossiers cachés (.git/…) : FilesMatch ne voit que le nom du fichier, pas le dossier.
+    RewriteRule (^|/)\.(?!well-known/) - [F,L]
+
+    # Forcer HTTPS
+    RewriteCond %{HTTPS} !=on
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>

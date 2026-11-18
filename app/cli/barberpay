@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# BarberPay — lanceur des commandes d'administration.
+# short_open_tag est nécessaire pour la bibliothèque kd (/var/adminKdFast/globalFunctions.php).
+exec php -d short_open_tag=1 "$(dirname "$(readlink -f "$0")")/console.php" "$@"
