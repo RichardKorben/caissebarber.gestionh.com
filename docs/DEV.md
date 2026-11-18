@@ -7,11 +7,14 @@
 ├── index.php           accueil (connecté) — deviendra l'écran de caisse à l'étape 2
 ├── login.php           connexion du gérant
 ├── logout.php          déconnexion (POST + jeton uniquement)
+├── admin/              administration (gérant) : catalogue.php, article.php, equipe.php, membre.php, salon.php
 ├── public/             seul dossier de fichiers statiques : css/, fonts/ (Inter, Oswald hébergées ici)
 ├── app/                code serveur — accès web refusé (app/.htaccess)
 │   ├── bootstrap.php   chargement commun (constantes, autoload BarberPay\…, fuseau, mysqli en exceptions)
 │   ├── web.php         démarrage d'une page : barber d'après l'adresse → sa base → session
-│   ├── src/            classes : Database, Tenant, Session, Csrf, Auth, Migrator
+│   ├── admin.php       démarrage d'une page d'admin (gérant obligatoire) + mise en page, champ(), icone()
+│   ├── src/            classes : Database, Tenant, Session, Csrf, Auth, Migrator,
+│   │                   Montant, Tva, Flash, Parametres, Articles, Equipe
 │   ├── migrations/
 │   │   ├── main/       migrations de GH_main (tables barberpay_*)
 │   │   └── tenant/     migrations de chaque base de barber
@@ -64,3 +67,16 @@ dans `app/` prend le mauvais groupe. Après en avoir créé un : `chgrp www-data
 - Formulaires : jeton CSRF (`Csrf::champ()` / `Csrf::valide()`).
 - Affichage : toujours `e()` (échappement HTML).
 - Connexion : `password_hash`, blocage après 5 échecs par e-mail ou 10 par IP en 15 minutes.
+
+## Règles métier de l'admin (étape 1)
+- **Montants en centimes** (`Montant::analyser('25,50')` → 2550). Taux de TVA en centièmes de % (2000 = 20 %).
+- **Un article n'est jamais supprimé**, seulement désactivé (il pourra figurer sur des tickets).
+- **Ordre des vignettes** : boutons ↑ ↓ (plus fiables au doigt que le glisser-déposer) ; la liste est renumérotée 1, 2, 3…
+- **Équipe** : au moins un gérant actif ; on ne peut pas se désactiver soi-même. PIN de 4 à 6 chiffres,
+  refusé s'il est trop simple (1111, 1234…), stocké haché. Un barbier n'a ni e-mail ni mot de passe.
+- **Salon** : SIRET vérifié (clé de Luhn). Le nom du salon est recopié dans le registre `GH_main`
+  (affiché sur la page de connexion). Seuils de franchise 2026 préremplis, modifiables.
+
+## Tests
+Les tests de bout en bout (curl sur le site de dev) ne sont pas encore dans le dépôt : ils seront ajoutés
+dans `tests/` avec le lanceur de tests à l'étape 3.

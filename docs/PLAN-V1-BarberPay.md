@@ -191,7 +191,7 @@ Page publique : nom du salon, adresse choisie (vérification de disponibilité e
 | Étape | Contenu | Terminée quand |
 |---|---|---|
 | **0. Socle** ✅ (18/11/2026) | Structure des dossiers, intégration kd, système de migrations, registre `GH_main`, base de dev `BARBER_dev`, connexion du gérant | Fait : connexion testée sur `caissebarber.gestionh.com`, migrations passées sur `BARBER_dev` et `BARBER_dev2`. Voir `docs/DEV.md` |
-| **1. Catalogue et équipe** | Admin articles, utilisateurs et PIN, paramètres du salon et de la TVA | On peut créer services et produits et définir le régime de TVA |
+| **1. Catalogue et équipe** ✅ (18/11/2026) | Admin articles, utilisateurs et PIN, paramètres du salon et de la TVA | Fait : `/admin/` (Catalogue, Équipe, Salon), 36 tests de bout en bout passés. Reste pour l'étape 3 : tracer prix et régime de TVA dans le journal |
 | **2. Écran caisse** | Interface DESIGN.md avec ajustements, ticket côté navigateur, mise en attente, montant libre, remise | On compose et on met en attente un ticket à la souris et au doigt, en 1280×800 et en 1024 |
 | **3. Encaissement et module fiscal** | Numérotation, chaînage, signature, triggers, paiements, ticket QR et impression, annulation, journal | Un ticket encaissé ne peut être ni modifié ni supprimé (testé en SQL direct), la chaîne se vérifie |
 | **4. Caisse du jour et clôtures** | Fond, comptage, Z, mois, année, grand total, clôture automatique, historique, duplicata | Une journée complète, ouverture → ventes → annulation → Z, donne des totaux justes et signés |

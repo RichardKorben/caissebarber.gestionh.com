@@ -32,7 +32,8 @@ if ($utilisateur === null) {
         <p class="marque">BARBERPAY</p>
         <h1><?= e($tenant->nomSalon) ?></h1>
         <p class="texte-clair">Connecté : <strong><?= e(trim($utilisateur['prenom'] . ' ' . ($utilisateur['nom'] ?? ''))) ?></strong> (gérant)</p>
-        <p class="texte-discret">La caisse sera disponible à l'étape 2. Version <?= e(BarberPay\VERSION) ?>.</p>
+        <p class="texte-discret">La caisse sera disponible à l'étape 2. En attendant, préparez votre catalogue, votre équipe et les informations du salon. Version <?= e(BarberPay\VERSION) ?>.</p>
+        <a class="bouton-or" href="/admin/" style="text-decoration:none">Administration</a>
         <form method="post" action="/logout.php">
             <?= Csrf::champ() ?>
             <button type="submit" class="bouton-secondaire">Se déconnecter</button>
