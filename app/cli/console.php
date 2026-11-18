@@ -10,6 +10,9 @@
  *   barberpay cloturer --compte=<sous-domaine> | --tous   clôtures automatiques en retard (à lancer chaque nuit)
  *   barberpay gerant:creer --compte=<sous-domaine> --email=<e-mail> --prenom=<prénom> [--nom=<nom>]
  *       (mot de passe lu dans la variable d'environnement BP_MOT_DE_PASSE, sinon généré et affiché une fois)
+ *   barberpay compte:creer < donnees.json          salon complet (inscription en ligne), réponse JSON
+ *   barberpay compte:activer --sous-domaine=<x>    compte « en préparation » → actif, réponse JSON
+ *   barberpay compte:annuler --sous-domaine=<x>    supprime un compte resté « en préparation », réponse JSON
  */
 declare(strict_types=1);
 
@@ -190,6 +193,34 @@ try {
                 }
             }
             exit($echecs ? 1 : 0);
+
+        // Inscription en ligne (étape 6) : appelées par /var/kdSite/scriptsV2/barber_creation.py, réponses en JSON.
+        case 'compte:creer':
+        case 'compte:activer':
+        case 'compte:annuler':
+            $creation = new BarberPay\Creation(Database::commune(), Database::serveur());
+            try {
+                if ($commande === 'compte:creer') {
+                    $donnees = json_decode((string) stream_get_contents(STDIN), true);
+                    if (!is_array($donnees)) {
+                        throw new RuntimeException('JSON attendu sur l\'entrée standard.');
+                    }
+                    $reponse = ['status' => 'success'] + $creation->creer($donnees);
+                } else {
+                    $sousDomaine = strtolower((string) bp_option($options, 'sous-domaine'));
+                    if ($commande === 'compte:activer') {
+                        $creation->activer($sousDomaine);
+                        $reponse = ['status' => 'success'];
+                    } else {
+                        $reponse = ['status' => 'success', 'supprime' => $creation->annuler($sousDomaine)];
+                    }
+                }
+                echo json_encode($reponse, JSON_UNESCAPED_UNICODE) . "\n";
+                exit(0);
+            } catch (Throwable $erreur) {
+                echo json_encode(['status' => 'error', 'message' => $erreur->getMessage()], JSON_UNESCAPED_UNICODE) . "\n";
+                exit(1);
+            }
 
         case 'integrite':
             $tenant = bp_compte((string) bp_option($options, 'compte'));

@@ -182,3 +182,46 @@ npm install --prefix tests                                     # une fois : jsdo
   (compteur `ticket_formation`), bandeau orange en caisse et « MODE FORMATION » sur le ticket, exclus des totaux,
   des Z, des exports et du stock, non annulables ; possibles même après le Z. Activation et désactivation au journal.
 - **Seuils de franchise** : alerte sur la Recette à 80 % du seuil, puis au dépassement du seuil majoré (année civile).
+
+## Inscription en ligne (étape 6, 18/11/2026)
+Parcours : https://barberpay.fr/inscription → SIRET vérifié dans l'annuaire officiel → nom du salon, adresse
+`<x>.gestionh.com`, coordonnées, régime de TVA → e-mail de confirmation (lien valable 48 h) → clic sur « Créer ma
+caisse maintenant » → création automatique (≈ 15 s) → identifiants envoyés par e-mail (mot de passe généré).
+
+**Fichiers**
+- Site (`/var/www/barberpay.fr`, dépôt séparé) : `app/pages/inscription.php`, `app/inscription-api.php` (API
+  `/inscription/api`), `httpdocs/assets/js/inscription.js`, `app/secret.php` (clé HMAC, hors git), `tmp/` (fichiers
+  de demande, effacés dès leur lecture, hors git). Interrupteur : `inscription_ouverte` dans `app/config.php`.
+- Serveur (root, hors git) : `/var/kdSite/scriptsV2/barber_inscription.py` (action `barber_inscription` du
+  dispatcher : annuaire, adresse, demande, confirmer, suivi) et `barber_creation.py` (création, lancé en arrière-plan).
+  Suivi et paramètres : `/var/kdSite/barberpay/inscriptions/` (700, root). Sauvegarde du dispatcher avant ajout de
+  l'action : `/var/backups/dispatcher.py.20261118-152148`.
+- Caisse : `app/src/Creation.php` et les commandes `compte:creer` (JSON sur l'entrée standard), `compte:activer`,
+  `compte:annuler` (refuse un compte qui n'est pas « en préparation »). Lancées par root en www-data (`runuser`).
+- Base commune : `barberpay_inscriptions` (demandes, statut attente → creation → creee | echec | expiree) et
+  `barberpay_inscriptions_recherches` (limite de recherches par IP), migration `main/0002_inscriptions.sql`.
+
+**Règles**
+- Accepté : SIRET actif, activité coiffure (NAF 96.02A/B) **ou** entrepreneur individuel (nature juridique 1000),
+  pas déjà inscrit. Sinon, message avec contact@kdsoft.fr.
+- Adresse : `^[a-z][a-z0-9]{2,29}$`, ni réservée (`barberpay_noms_reserves`), ni dans le registre, ni base
+  `BARBER_<x>`, ni utilisée par un autre site du serveur (contrôle partagé avec tactilpay : vhosts, certificats…).
+- Création : base, registre (statut « preparation »), migrations, gérant, paramètres du salon (identité de
+  l'annuaire, TVA intracommunautaire calculée si assujetti), 5 prestations à 0 € masquées (coupe homme, dégradé,
+  barbe, coupe + barbe, coupe enfant) ; configuration Apache HTTP (configtest avant rechargement) ; certificat
+  Let's Encrypt ; HTTPS + redirection ; contrôle « Espace en préparation » (503) puis, après activation, page de
+  connexion (200) ; e-mails (identifiants au gérant, avis à contact@kdsoft.fr).
+- Échec à n'importe quelle étape : tout est défait dans l'ordre inverse (vhosts, certificat, base et registre) et un
+  avis part à contact@kdsoft.fr. Une seule création à la fois (verrou `/run/lock/barber_creation.lock`).
+- Garde-fous : 3 demandes par IP et par e-mail sur 24 h ; 60 recherches dans l'annuaire par IP sur 24 h ;
+  10 créations sur 24 h (quota Let's Encrypt de gestionh.com) ; champ piège et délai minimal de 4 s vérifié par un
+  horodatage signé (pas de cookie) ; appels d'un autre site refusés (en-tête Origin) ; un seul lancement par lien.
+
+**Test complet du 18/11/2026** : adresse `essaibarber`, SIRET fictif `99999999800001` avec l'annuaire simulé
+(`sudo env BP_ANNUAIRE_SIMULE=<fiche.json> python3 barber_inscription.py …`, seulement à la main : le dispatcher ne
+transmet pas l'environnement), confirmation par l'API du site : caisse en ligne en 13 s. Un premier essai a échoué
+à la vérification HTTPS : le retour arrière a tout supprimé (vhosts, certificat, base, registre). Interface :
+15 tests jsdom (formulaire, refus, adresse prise, envoi, suivi, lien expiré).
+
+**Non fait** : liste des inscriptions dans un écran d'admin (lire `GH_main.barberpay_inscriptions`) ; purge des
+fichiers de suivi anciens ; certificat générique `*.gestionh.com` au-delà de 50 certificats par semaine.
