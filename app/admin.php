@@ -19,6 +19,16 @@ if ($utilisateur === null) {
 if ($utilisateur['role'] !== 'gerant') {
     bp_page_erreur(403, 'Accès réservé', 'L\'administration est réservée au gérant du salon.');
 }
+// Si la caisse se verrouille par PIN, il faut qu'un gérant soit à la caisse (un barbier ne doit pas entrer
+// dans l'admin depuis le poste ouvert par le gérant).
+$caisseAdmin = new BarberPay\Caisse($con, (int) (new BarberPay\Parametres($con, $tenant))->charger()['verrouillage_minutes']);
+if ($caisseAdmin->verrouillageActif()) {
+    $operateurAdmin = $caisseAdmin->operateur();
+    if ($operateurAdmin === null || $operateurAdmin['role'] !== 'gerant') {
+        bp_page_erreur(403, 'Code gérant nécessaire', 'Déverrouillez la caisse avec un code PIN de gérant pour ouvrir l\'administration.');
+    }
+    $caisseAdmin->toucher();
+}
 
 /** Requête POST avec un jeton valide ? Sinon message et redirection vers la même page. */
 function admin_post(): bool

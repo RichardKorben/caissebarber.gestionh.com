@@ -4,17 +4,19 @@
 ```
 /                       racine web (caissebarber.gestionh.com et, plus tard, chaque <barber>.gestionh.com)
 ├── .htaccess           HTTPS forcé, en-têtes de sécurité, fichiers cachés et .md/.sql/.log… refusés
-├── index.php           accueil (connecté) — deviendra l'écran de caisse à l'étape 2
+├── index.php           écran de caisse (DESIGN.md)
+├── api/caisse.php      actions JSON de la caisse : verrouillage, PIN, tickets en attente
 ├── login.php           connexion du gérant
 ├── logout.php          déconnexion (POST + jeton uniquement)
 ├── admin/              administration (gérant) : catalogue.php, article.php, equipe.php, membre.php, salon.php
-├── public/             seul dossier de fichiers statiques : css/, fonts/ (Inter, Oswald hébergées ici)
+├── public/             fichiers statiques : css/, fonts/ (Inter, Oswald), js/ (calcul.js, caisse.js)
 ├── app/                code serveur — accès web refusé (app/.htaccess)
 │   ├── bootstrap.php   chargement commun (constantes, autoload BarberPay\…, fuseau, mysqli en exceptions)
 │   ├── web.php         démarrage d'une page : barber d'après l'adresse → sa base → session
 │   ├── admin.php       démarrage d'une page d'admin (gérant obligatoire) + mise en page, champ(), icone()
+│   ├── api.php         démarrage d'un point d'accès JSON (session + jeton CSRF en en-tête X-CSRF-Token)
 │   ├── src/            classes : Database, Tenant, Session, Csrf, Auth, Migrator,
-│   │                   Montant, Tva, Flash, Parametres, Articles, Equipe
+│   │                   Montant, Tva, Flash, Parametres, Articles, Equipe, Calcul, Caisse, TicketsAttente
 │   ├── migrations/
 │   │   ├── main/       migrations de GH_main (tables barberpay_*)
 │   │   └── tenant/     migrations de chaque base de barber
@@ -80,3 +82,20 @@ dans `app/` prend le mauvais groupe. Après en avoir créé un : `chgrp www-data
 ## Tests
 Les tests de bout en bout (curl sur le site de dev) ne sont pas encore dans le dépôt : ils seront ajoutés
 dans `tests/` avec le lanceur de tests à l'étape 3.
+
+## Écran de caisse (étape 2)
+- **Le ticket en cours vit dans le navigateur** (`public/js/caisse.js`, sauvegardé dans `localStorage`). Il n'a
+  aucune valeur fiscale ; le serveur refait tous les calculs à l'encaissement.
+- **Calcul d'un ticket : deux implémentations identiques**, `app/src/Calcul.php` et `public/js/calcul.js`
+  (remises en % ou en €, sur une ligne ou sur le ticket ; remise du ticket répartie au prorata, au centime près ;
+  HT et TVA par taux). **Toute modification se fait des deux côtés**, puis on compare les deux sur les mêmes cas.
+  Plafond : 99 999,99 € par ticket (calculs exacts en JavaScript, sous 2^53).
+- **Opérateur et verrouillage** (`Caisse`) : le gérant ouvre le poste (e-mail + mot de passe). Dès qu'un membre
+  actif a un code PIN, la caisse se verrouille après le délai choisi dans Admin → Salon, et chacun la déverrouille
+  avec son PIN (blocage après 5 erreurs pendant 15 minutes). L'admin exige qu'un **gérant** soit à la caisse.
+  Un gérant sans PIN se reconnecte avec son e-mail depuis l'écran verrouillé.
+- **Tickets en attente** : table `tickets_attente`, partagée entre les postes du salon ; le contenu est revérifié
+  par le serveur (`TicketsAttente::normaliser`). Reprendre un ticket le retire de l'attente, dans une transaction.
+- **Base de données** : les colonnes numériques reviennent en `int` PHP (`MYSQLI_OPT_INT_AND_FLOAT_NATIVE`).
+- **Captures** : `docs/captures/`. Rendu avec le Chrome sans interface de Playwright, lancé avec `--no-sandbox`
+  (l'outil gstack browse ne démarre pas sur ce serveur à cause du bac à sable de Chrome).

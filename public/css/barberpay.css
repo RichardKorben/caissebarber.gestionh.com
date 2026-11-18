@@ -57,6 +57,9 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
+/* L'attribut hidden doit toujours masquer, même un élément en display:flex. */
+[hidden] { display: none !important; }
+
 html, body { margin: 0; height: 100%; }
 
 body {

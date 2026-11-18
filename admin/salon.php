@@ -29,6 +29,7 @@ $valeurs = [
     'seuil_ventes_majore' => Montant::saisie((int) $p['seuil_ventes_majore']),
     'mention_ticket' => (string) ($p['mention_ticket'] ?? ''),
     'animation_poteau' => (string) $p['animation_poteau'],
+    'verrouillage_minutes' => (string) $p['verrouillage_minutes'],
 ];
 
 if (admin_post()) {
@@ -102,6 +103,17 @@ admin_haut('Salon', 'salon');
         <h2 id="titre-ticket">Ticket et affichage</h2>
         <div class="grille-champs">
             <?= champ('mention_ticket', 'Message en bas du ticket', $valeurs['mention_ticket'], $erreurs, ['maxlength' => 255, 'placeholder' => 'Merci et à bientôt !']) ?>
+        </div>
+        <div class="grille-champs">
+            <div class="champ">
+                <label for="champ-verrouillage_minutes">Verrouiller la caisse après</label>
+                <select id="champ-verrouillage_minutes" name="verrouillage_minutes" aria-describedby="champ-verrouillage_minutes-aide">
+                    <?php foreach (Parametres::DELAIS_VERROUILLAGE as $minutes): ?>
+                        <option value="<?= $minutes ?>"<?= (string) $minutes === $valeurs['verrouillage_minutes'] ? ' selected' : '' ?>><?= $minutes === 0 ? 'Jamais' : $minutes . ' minutes sans activité' ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <p class="aide" id="champ-verrouillage_minutes-aide">Seulement si au moins un membre de l'équipe a un code PIN.</p>
+            </div>
         </div>
         <label class="case"><input type="checkbox" name="animation_poteau" value="1"<?= $valeurs['animation_poteau'] === '1' ? ' checked' : '' ?>> Animer le poteau de barbier (rayures qui tournent)</label>
     </section>

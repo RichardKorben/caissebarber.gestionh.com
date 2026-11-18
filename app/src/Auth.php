@@ -71,6 +71,9 @@ final class Auth
         $this->effacerEchecs($cleEmail);
         Session::renouveler();
         $_SESSION['utilisateur_id'] = (int) $compte['id'];
+        // Le gérant vient de prouver son identité : la caisse s'ouvre à son nom.
+        $_SESSION['operateur_id'] = (int) $compte['id'];
+        $_SESSION['operateur_actif_le'] = time();
         return ['ok' => true];
     }
 

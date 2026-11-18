@@ -52,7 +52,10 @@ final class Database
             return self::$connexions[$base];
         }
         [$utilisateur, $motDePasse] = self::identifiants();
-        $con = new mysqli('localhost', $utilisateur, $motDePasse, $base === '' ? null : $base);
+        $con = mysqli_init();
+        // Les colonnes numériques reviennent en int/float PHP (et donc en nombres JSON), pas en chaînes.
+        $con->options(MYSQLI_OPT_INT_AND_FLOAT_NATIVE, 1);
+        $con->real_connect('localhost', $utilisateur, $motDePasse, $base === '' ? null : $base);
         $con->set_charset('utf8mb4');
         $con->query("SET time_zone = '" . date('P') . "'");
         return self::$connexions[$base] = $con;

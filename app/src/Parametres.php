@@ -10,6 +10,8 @@ final class Parametres
 {
     public const FRANCHISE = 'franchise';
     public const ASSUJETTI = 'assujetti';
+    /** Choix proposés pour le verrouillage automatique de la caisse (0 = jamais). */
+    public const DELAIS_VERROUILLAGE = [0, 2, 5, 10, 15, 30, 60];
 
     public function __construct(private readonly mysqli $con, private readonly Tenant $tenant)
     {
@@ -53,6 +55,7 @@ final class Parametres
             'regime_tva' => (string) ($saisie['regime_tva'] ?? ''),
             'mention_ticket' => $texte('mention_ticket', 255),
             'animation_poteau' => empty($saisie['animation_poteau']) ? 0 : 1,
+            'verrouillage_minutes' => (int) ($saisie['verrouillage_minutes'] ?? 10),
         ];
 
         $erreurs = [];
@@ -67,6 +70,9 @@ final class Parametres
         }
         if ($v['tva_intracom'] !== null && !preg_match('/^FR[0-9A-Z]{2}\d{9}$/', $v['tva_intracom'])) {
             $erreurs['tva_intracom'] = 'Numéro de TVA : FR suivi de 11 caractères.';
+        }
+        if (!in_array($v['verrouillage_minutes'], self::DELAIS_VERROUILLAGE, true)) {
+            $erreurs['verrouillage_minutes'] = 'Délai invalide.';
         }
         if (!in_array($v['regime_tva'], [self::FRANCHISE, self::ASSUJETTI], true)) {
             $erreurs['regime_tva'] = 'Choisissez le régime de TVA.';
@@ -96,15 +102,15 @@ final class Parametres
         $requete = $this->con->prepare(
             'UPDATE parametres SET nom_salon = ?, raison_sociale = ?, adresse = ?, code_postal = ?, ville = ?, telephone = ?,
                 siret = ?, tva_intracom = ?, regime_tva = ?, seuil_services = ?, seuil_services_majore = ?,
-                seuil_ventes = ?, seuil_ventes_majore = ?, mention_ticket = ?, animation_poteau = ?
+                seuil_ventes = ?, seuil_ventes_majore = ?, mention_ticket = ?, animation_poteau = ?, verrouillage_minutes = ?
              WHERE id = 1'
         );
         $requete->bind_param(
-            'sssssssssiiiisi',
+            'sssssssssiiiisii',
             $v['nom_salon'], $v['raison_sociale'], $v['adresse'], $v['code_postal'], $v['ville'], $v['telephone'],
             $v['siret'], $v['tva_intracom'], $v['regime_tva'],
             $seuils['seuil_services'], $seuils['seuil_services_majore'], $seuils['seuil_ventes'], $seuils['seuil_ventes_majore'],
-            $v['mention_ticket'], $v['animation_poteau']
+            $v['mention_ticket'], $v['animation_poteau'], $v['verrouillage_minutes']
         );
         $requete->execute();
 
