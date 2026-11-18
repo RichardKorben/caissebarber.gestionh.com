@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><title>BarberPay</title><defs>
+  <pattern id="f-st" width="24" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+   <rect width="7" height="10" fill="#C8102E"/><rect x="7" width="5" height="10" fill="#FFFFFF"/>
+   <rect x="12" width="7" height="10" fill="#1D4E9E"/><rect x="19" width="5" height="10" fill="#FFFFFF"/>
+  </pattern>
+  <linearGradient id="f-gl" x1="0" y1="0" x2="1" y2="0">
+   <stop offset="0" stop-color="#000" stop-opacity=".35"/><stop offset=".38" stop-color="#fff" stop-opacity=".3"/>
+   <stop offset=".6" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".4"/>
+  </linearGradient>
+ </defs>
+ <circle cx="60" cy="60" r="56" fill="#0A0A0A" stroke="#C9A44C" stroke-width="4"/>
+ <circle cx="60" cy="60" r="48" fill="none" stroke="#C9A44C" stroke-width="1.2" stroke-opacity=".55"/>
+ <path d="M53 27a7 7 0 0 1 14 0z" fill="#C9A44C"/>
+ <rect x="44" y="27" width="32" height="6" rx="3" fill="#C9A44C"/>
+ <rect x="49" y="33" width="22" height="54" fill="url(#f-st)"/>
+ <rect x="49" y="33" width="22" height="54" fill="url(#f-gl)"/>
+ <rect x="44" y="87" width="32" height="6" rx="3" fill="#C9A44C"/>
+ <path d="M53 93a7 7 0 0 0 14 0z" fill="#C9A44C"/></svg>

@@ -1,8 +1,14 @@
-# DESIGN.md — Caisse Barber (écran principal)
+# DESIGN.md — BarberPay · Caisse (écran principal)
 
 > Spécification visuelle et fonctionnelle de l'écran de caisse pour barbiers.
 > À utiliser comme référence par Claude Code pour implémenter l'interface.
-> Maquette de référence : canvas « Caisse Barber » (https://claude.ai/artifact/82GzXT8JhQukNucK7froWw).
+> Nom du logiciel : **BarberPay**.
+> Maquette de référence exécutable : `reference/caisse.html` (capture : `reference/caisse-1280x800.png`).
+> Logos et icônes : dossier `assets/` (voir § 9).
+>
+> **Dans ce dépôt** : maquette = `docs/maquette-caisse.html` et `docs/maquette-caisse.png` ;
+> logos et icônes = `public/img/` (les SVG de `assets/svg/` et les PNG de `assets/png/` sont tous à plat dans ce dossier),
+> manifeste PWA = `public/manifest.webmanifest`. Fonctions PHP : `BarberPay\embleme()`, `BarberPay\logotype()`, `BarberPay\icones_tete()`.
 
 ---
 
@@ -114,13 +120,13 @@ Polices Google Fonts : `Inter:wght@400;500;600;700` et `Oswald:wght@500;600`.
 │ Admin│                                       │└──────────────────┘│
 │ Quit.│                                       │[   ENCAISSER  →   ]│
 └──────┴───────────────────────────────────────┴────────────────────┘
-  96px          flexible (min ~520px)              380–440px
+  96px          flexible (min ~520px)              420–460px
 ```
 
 - Conteneur racine : `display:flex; flex-wrap:wrap; height:100vh; min-height:720px; background:var(--bg-app)`.
 - **Barre latérale** : `flex: 0 0 96px`, colonne, padding 18px 8px, gap 22px, bordure droite 1px `--border-side`. Outils poussés en bas (`margin-top:auto`).
 - **Liste** : `flex: 999 1 520px; min-width:0`, padding 24px 24px 24px 28px, colonne avec gap 20px. La grille scrolle seule (`overflow-y:auto`), l'en-tête reste fixe.
-- **Caisse** : `flex: 1 1 380px; max-width:440px`, padding 16px 16px 16px 0. Contient une carte blanche `border-radius:20px; overflow:hidden` en colonne. Seule la zone des lignes scrolle.
+- **Caisse** : `flex: 1 1 420px; max-width:460px`, padding 16px 16px 16px 0. Contient une carte blanche `border-radius:20px; overflow:hidden` en colonne. Seule la zone des lignes scrolle.
 - Taille de référence : 1280×800. Doit fonctionner de 1024px à 1920px de large.
 
 ### Responsive (< 980px)
@@ -132,13 +138,12 @@ Polices Google Fonts : `Inter:wght@400;500;600;700` et `Oswald:wght@500;600`.
 
 ## 5. Composants
 
-### 5.1 Logo poteau de barbier (haut de la barre latérale)
+### 5.1 Logo BarberPay (haut de la barre latérale)
 Empilement vertical centré, gap 8px :
-1. Dôme or : 14×6px, `border-radius: 7px 7px 0 0`
-2. Embout or : 30×7px, radius 3px
-3. **Cylindre** 22×60px, radius 2px (voir CSS ci-dessous)
-4. Embout or : 30×7px, radius 3px
-5. Texte « BARBER » (Oswald 13px, or, letter-spacing 3px)
+1. Emblème `assets/svg/emblem.svg` en 60×60px (`alt=""`, décoratif)
+2. Texte « BARBER**PAY** » : Oswald 600, 14px, letter-spacing 1.5px, « BARBER » blanc, « PAY » or
+
+Variante animée (optionnelle) : poteau dessiné en CSS avec rayures qui tournent :
 
 ```css
 .pole {
@@ -197,8 +202,8 @@ L'animation (rayures qui « tournent ») doit pouvoir être désactivée par un 
    - Total ligne à droite (Oswald 19px, min-width 76px, aligné à droite).
 5. **Ticket vide** : icône ciseaux grise 40px, « Ticket vide » (16px/600) et « Touchez un service ou un produit pour l'ajouter. »
 6. **Pied** (padding 16px 20px 20px, bordure haute, gap 12px) :
-   - Grille 2 colonnes : **Paiement partiel** (icône carte) et **Bon cadeau** (icône cadeau) — h 48px, fond blanc, bordure claire.
-   - **Bloc total** noir (radius 16px, padding 16px 18px) : à gauche « 2 articles » et « HT 50,00 € · TVA 10,00 € » (13px, `--text-side`) ; à droite total TTC Oswald 40px blanc.
+   - Grille 2 colonnes : **Partiel** (icône carte) et **Bon cadeau** (icône cadeau) — h 48px, fond blanc, bordure claire, `white-space:nowrap`.
+   - **Bloc total** noir (radius 16px, padding 16px 18px) : à gauche « 2 articles » et « HT 50,00 € · TVA 10,00 € » (13px, `--text-side`) ; à droite total TTC Oswald 40px blanc. Montants en `white-space:nowrap`.
    - **Bouton ENCAISSER** : pleine largeur, h 64px, radius 16px, fond or, texte noir Oswald 22px majuscules + flèche →.
 
 ---
@@ -214,7 +219,7 @@ L'animation (rayures qui « tournent ») doit pouvoir être désactivée par un 
 | − sur une ligne | Quantité −1 ; à 1 → corbeille, retire la ligne |
 | Client de passage | Ouvre le choix du client (fonction existante de l'appli coiffeur) |
 | Pause | Met le ticket en attente (fonction existante) |
-| Paiement partiel / Bon cadeau | Fonctions existantes de l'appli coiffeur |
+| Partiel / Bon cadeau | Fonctions existantes de l'appli coiffeur |
 | Encaisser | Ouvre l'écran de paiement existant |
 | Planning / Historique / Recette / Admin / Quitter | Mêmes cibles que l'appli coiffeur (Planning et Admin peuvent ouvrir un nouvel onglet) |
 
@@ -237,3 +242,36 @@ Calculs : les prix sont **TTC** ; HT = TTC / (1 + taux) ; TVA = TTC − HT (taux
 - Logique métier, base de données, encaissement, clients, bons cadeaux, paiement partiel, historique, recette, planning, admin.
 - **Supprimé** pour la version barber : onglets Forfaits / Cures, grille de familles de services, pagination des familles.
 - Les données de la maquette (noms, prix, stocks) sont des **exemples** : utiliser le catalogue réel.
+
+---
+
+## 9. Identité BarberPay (logo)
+
+**Concept** : un poteau de barbier (rayures bleu / blanc / rouge, embouts or) placé dans une **pièce dorée** → barbier + paiement.
+
+| Élément | Valeur |
+|---|---|
+| Emblème | disque `#0A0A0A`, anneau or 4/120 du diamètre, anneau intérieur fin or 55 % d'opacité, poteau au centre |
+| Logotype | « BARBER » + « PAY », Oswald SemiBold (600), letter-spacing ≈ 5 % — texte **vectorisé** dans les SVG |
+| Couleurs | « PAY » `#C9A44C` sur fond sombre, `#A07F2C` sur fond clair ; « BARBER » blanc sur sombre, `#0A0A0A` sur clair |
+| Slogan | « LOGICIEL DE CAISSE BARBIER », Inter SemiBold, majuscules, espacé, précédé d'une petite bande rayée |
+| Zone de protection | au moins ½ diamètre de l'emblème autour du logo |
+| Taille mini | emblème 24px ; logo horizontal 160px de large |
+
+### Fichiers (`assets/`)
+| Fichier | Usage |
+|---|---|
+| `svg/logo-dark-bg.svg` / `png/logo-dark-bg.png` | logo horizontal pour fond **sombre** (fond transparent) |
+| `svg/logo-light-bg.svg` / `png/logo-light-bg.png` | logo horizontal pour fond **clair** (fond transparent) |
+| `svg/emblem.svg` / `png/emblem-256.png` | emblème seul (barre latérale, écran de connexion, tickets) |
+| `svg/app-icon.svg`, `png/app-icon-512.png`, `png/app-icon-192.png` | icône d'application / PWA (carré noir, coins arrondis 112/512) |
+| `svg/app-icon-square.svg`, `png/apple-touch-icon-180.png` | icône iOS (carré plein, iOS arrondit lui-même) |
+| `svg/favicon.svg`, `png/favicon-32.png`, `png/favicon-16.png` | favicon |
+
+Intégration HTML conseillée :
+```html
+<link rel="icon" href="/assets/svg/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/png/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/assets/png/apple-touch-icon-180.png">
+```
+Manifest PWA : icônes `app-icon-192.png` et `app-icon-512.png`, `background_color` et `theme_color` = `#0A0A0A`.

@@ -33,17 +33,16 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
+    <?= BarberPay\icones_tete() ?>
     <title>Connexion — <?= e($tenant->nomSalon) ?></title>
     <link rel="stylesheet" href="/public/css/barberpay.css?v=<?= e(BarberPay\VERSION) ?>">
 </head>
 <body class="page-centre">
     <main class="carte-connexion">
-        <div class="logo-poteau" aria-hidden="true">
-            <span class="poteau-dome"></span><span class="poteau-embout"></span>
-            <span class="poteau-cylindre poteau-anime"></span>
-            <span class="poteau-embout"></span>
+        <div class="logo-connexion" aria-hidden="true">
+            <?= BarberPay\embleme(true, true) ?>
+            <?= BarberPay\logotype() ?>
         </div>
-        <p class="marque">BARBERPAY</p>
         <h1><?= e($tenant->nomSalon) ?></h1>
 
         <form method="post" action="/login.php" novalidate>

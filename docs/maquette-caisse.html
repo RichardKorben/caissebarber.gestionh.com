@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BarberPay — Caisse (maquette de référence)</title>
+<link rel="icon" href="../assets/svg/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600&display=swap" rel="stylesheet">
+<!--
+  Maquette de référence BarberPay — HTML/CSS/JS autonome, sans dépendance.
+  Elle sert de modèle VISUEL et de comportement. Voir ../DESIGN.md pour la spec complète.
+  Les données (prestations, produits, prix, stocks) sont des EXEMPLES.
+-->
+<style>
+:root{
+  --bg-app:#121212;--bg-sidebar:#0A0A0A;--bg-card:#1B1B1B;--bg-card-hover:#242424;
+  --border-dark:#2E2E2E;--border-side:#232323;
+  --bg-ticket:#FFFFFF;--bg-ticket-btn:#F6F6F6;--border-light:#DCDCDC;--divider-light:#ECECEC;--row-divider:#F0F0F0;--bg-total:#0E0E0E;
+  --text-on-dark:#FFFFFF;--text-muted-dark:#9A9A9A;--text-side:#A8A8A8;--text-side-inactive:#D8D8D8;
+  --text-on-light:#111111;--text-muted-light:#666666;--text-on-gold:#0A0A0A;
+  --gold:#C9A44C;--gold-hover:#E2C57A;
+  --pole-red:#C8102E;--pole-white:#FFFFFF;--pole-blue:#1D4E9E;
+  --r-sm:12px;--r-md:16px;--r-lg:20px;
+  --font-display:"Oswald",sans-serif;--font-body:"Inter",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg-app);font-family:var(--font-body);color:#F5F5F5}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+svg.ico{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+
+.app{height:100vh;min-height:720px;display:flex;flex-wrap:wrap}
+
+/* Barre latérale */
+.side{flex:0 0 96px;background:var(--bg-sidebar);border-right:1px solid var(--border-side);display:flex;flex-direction:column;align-items:center;gap:22px;padding:18px 8px}
+.brand{display:flex;flex-direction:column;align-items:center;gap:8px}
+.brand-name{font-family:var(--font-display);font-weight:600;font-size:14px;letter-spacing:1.5px;line-height:1;color:#fff;text-align:center}
+.brand-name span{color:var(--gold)}
+.side-nav,.side-tools{display:flex;flex-direction:column;gap:10px}
+.side-tools{margin-top:auto;gap:4px}
+.cat-btn{width:78px;height:84px;border:0;border-radius:var(--r-md);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-size:13px;font-weight:600;background:transparent;color:var(--text-side-inactive)}
+.cat-btn[aria-pressed="true"]{background:var(--gold);color:var(--text-on-gold)}
+.tool-btn{width:78px;height:56px;border:0;border-radius:var(--r-sm);background:transparent;color:var(--text-side);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:500}
+.tool-btn:hover{color:#fff}
+
+/* Liste */
+.list{flex:999 1 520px;min-width:0;height:100%;display:flex;flex-direction:column;gap:20px;padding:24px 24px 24px 28px}
+.list-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
+.list-head h1{margin:0;font-family:var(--font-display);font-weight:600;font-size:32px;letter-spacing:1.5px;text-transform:uppercase;color:#fff}
+.list-head p{margin:4px 0 0;font-size:14px;color:var(--text-muted-dark)}
+.search{position:relative;flex:0 1 340px;min-width:220px}
+.search svg{position:absolute;left:16px;top:15px;color:#8C8C8C}
+.search input{width:100%;height:48px;padding:0 16px 0 44px;border-radius:var(--r-sm);border:1px solid var(--border-dark);background:var(--bg-card);color:#fff;font-size:15px;font-family:inherit}
+.scroll{flex:1 1 auto;min-height:0;overflow-y:auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.card{position:relative;min-height:112px;padding:16px;border-radius:var(--r-md);border:1.5px solid var(--border-dark);background:var(--bg-card);color:#fff;text-align:left;display:flex;flex-direction:column;justify-content:space-between;gap:12px}
+.card:hover{background:var(--bg-card-hover)}
+.card.in-ticket{border-color:var(--gold)}
+.card-name{font-size:16px;font-weight:600;line-height:1.3;padding-right:30px}
+.card-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;width:100%}
+.card-meta{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-muted-dark)}
+.card-price{font-family:var(--font-display);font-weight:500;font-size:26px;line-height:1;color:var(--gold)}
+.badge{position:absolute;top:12px;right:12px;min-width:26px;height:26px;padding:0 6px;border-radius:13px;background:var(--gold);color:var(--text-on-gold);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.empty-search{margin:48px 0;text-align:center;color:var(--text-muted-dark);font-size:15px}
+
+/* Ticket */
+.ticket{flex:1 1 420px;max-width:460px;height:100%;padding:16px 16px 16px 0;display:flex}
+.ticket-card{flex:1 1 auto;min-width:0;background:var(--bg-ticket);color:var(--text-on-light);border-radius:var(--r-lg);overflow:hidden;display:flex;flex-direction:column}
+.stripes{height:6px;flex:0 0 6px;background:repeating-linear-gradient(-45deg,var(--pole-red) 0 10px,var(--pole-white) 10px 16px,var(--pole-blue) 16px 26px,var(--pole-white) 26px 32px)}
+.ticket-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px 14px}
+.ticket-head h2{margin:0;font-family:var(--font-display);font-weight:600;font-size:24px;letter-spacing:1px;text-transform:uppercase}
+.btn-light{height:44px;padding:0 14px;white-space:nowrap;border-radius:var(--r-sm);border:1px solid var(--border-light);background:#fff;color:var(--text-on-light);font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-icon{width:44px;padding:0}
+.divider{height:1px;background:var(--divider-light);margin:0 20px}
+.lines{flex:1 1 auto;min-height:120px;overflow-y:auto;padding:6px 20px}
+.line{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--row-divider)}
+.line-info{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:3px}
+.line-name{font-size:15px;font-weight:600}
+.line-unit{font-size:13px;color:var(--text-muted-light)}
+.stepper{display:flex;align-items:center;border:1px solid var(--border-light);border-radius:var(--r-sm);overflow:hidden}
+.stepper button{width:40px;height:44px;border:0;background:var(--bg-ticket-btn);color:var(--text-on-light);display:flex;align-items:center;justify-content:center}
+.stepper span{min-width:30px;text-align:center;font-size:15px;font-weight:700}
+.line-total{min-width:76px;text-align:right;font-family:var(--font-display);font-weight:500;font-size:19px}
+.ticket-empty{height:100%;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--text-muted-light);text-align:center;font-size:14px}
+.ticket-empty strong{font-size:16px;color:#333}
+.ticket-foot{padding:16px 20px 20px;display:flex;flex-direction:column;gap:12px;border-top:1px solid var(--divider-light)}
+.foot-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.foot-actions .btn-light{height:48px}
+.total{background:var(--bg-total);color:#fff;border-radius:var(--r-md);padding:16px 18px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.total small{display:block;font-size:13px;color:var(--text-side);margin-top:4px;white-space:nowrap}
+.total-amount{font-family:var(--font-display);font-weight:600;font-size:40px;line-height:1;white-space:nowrap}
+.pay-btn{height:64px;border:0;border-radius:var(--r-md);background:var(--gold);color:var(--text-on-gold);font-family:var(--font-display);font-weight:600;font-size:22px;letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:12px}
+.pay-btn:hover{background:var(--gold-hover)}
+
+@media (max-width:980px){
+  .app{height:auto;min-height:0}
+  .side{flex:1 1 100%;flex-direction:row;padding:10px 12px;overflow-x:auto}
+  .side-nav,.side-tools{flex-direction:row;margin-top:0}
+  .list{height:auto}
+  .ticket{flex:1 1 100%;max-width:none;height:auto;padding:0 16px 16px}
+  .scroll,.lines{overflow:visible}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <nav class="side" aria-label="Navigation caisse">
+    <div class="brand">
+      <img src="../assets/svg/emblem.svg" width="60" height="60" alt="">
+      <div class="brand-name">BARBER<span>PAY</span></div>
+    </div>
+    <div class="side-nav">
+      <button type="button" class="cat-btn" data-cat="services" aria-pressed="true">
+        <svg class="ico" width="26" height="26" viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+        Services
+      </button>
+      <button type="button" class="cat-btn" data-cat="products" aria-pressed="false">
+        <svg class="ico" width="26" height="26" viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true"><path d="M10 2h4v3l2 3v12a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V8l2-3z"/><path d="M8 12h8"/><path d="M10 5h4"/></svg>
+        Produits
+      </button>
+    </div>
+    <div class="side-tools">
+      <button type="button" class="tool-btn"><svg class="ico" width="20" height="20" viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Planning</button>
+      <button type="button" class="tool-btn"><svg class="ico" width="20" height="20" viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>Historique</button>
+      <button type="button" class="tool-btn"><svg class="ico" width="20" height="20" viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15v2"/><path d="M12 11v6"/><path d="M17 7v10"/></svg>Recette</button>
+      <button type="button" class="tool-btn"><svg class="ico" width="20" height="20" viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Admin</button>
+      <button type="button" class="tool-btn"><svg class="ico" width="20" height="20" viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Quitter</button>
+    </div>
+  </nav>
+
+  <main class="list">
+    <div class="list-head">
+      <div>
+        <h1 id="cat-title">Services</h1>
+        <p id="cat-count">12 prestations</p>
+      </div>
+      <div class="search">
+        <label for="q" class="sr-only">Rechercher un article ou un code-barres</label>
+        <svg class="ico" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="q" type="search" placeholder="Rechercher ou scanner…" autocomplete="off">
+      </div>
+    </div>
+    <div class="scroll">
+      <div class="grid" id="grid"></div>
+      <p class="empty-search" id="no-results" hidden></p>
+    </div>
+  </main>
+
+  <aside class="ticket" aria-label="Ticket en cours">
+    <div class="ticket-card">
+      <div class="stripes"></div>
+      <div class="ticket-head">
+        <h2>Ticket</h2>
+        <div style="display:flex;gap:8px">
+          <button type="button" class="btn-light"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Client de passage</button>
+          <button type="button" class="btn-light btn-icon" aria-label="Mettre le ticket en attente"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="lines" id="lines"></div>
+      <div class="ticket-foot">
+        <div class="foot-actions">
+          <button type="button" class="btn-light"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Partiel</button>
+          <button type="button" class="btn-light"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>Bon cadeau</button>
+        </div>
+        <div class="total">
+          <div><small id="t-count">0 article</small><small id="t-ht">HT 0,00 € · TVA 0,00 €</small></div>
+          <span class="total-amount" id="t-total">0,00 €</span>
+        </div>
+        <button type="button" class="pay-btn" id="pay">Encaisser
+          <svg class="ico" width="22" height="22" viewBox="0 0 24 24" stroke-width="2.4" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script>
+// Données d'EXEMPLE — à remplacer par le catalogue réel.
+const CATALOG = {
+  services: [
+    { id: "s1", name: "Coupe homme", meta: "30 min", price: 25 },
+    { id: "s2", name: "Coupe + barbe", meta: "45 min", price: 38 },
+    { id: "s3", name: "Taille de barbe", meta: "20 min", price: 15 },
+    { id: "s4", name: "Dégradé américain", meta: "35 min", price: 28 },
+    { id: "s5", name: "Rasage traditionnel", meta: "30 min", price: 28 },
+    { id: "s6", name: "Coupe enfant (-12 ans)", meta: "20 min", price: 18 },
+    { id: "s7", name: "Coupe tondeuse", meta: "15 min", price: 16 },
+    { id: "s8", name: "Contours & finitions", meta: "10 min", price: 10 },
+    { id: "s9", name: "Coloration barbe", meta: "20 min", price: 20 },
+    { id: "s10", name: "Soin visage", meta: "25 min", price: 25 },
+    { id: "s11", name: "Épilation sourcils", meta: "10 min", price: 8 },
+    { id: "s12", name: "Forfait mariage", meta: "1 h 15", price: 60 }
+  ],
+  products: [
+    { id: "p1", name: "Cire coiffante mate", meta: "Stock 14", price: 18 },
+    { id: "p2", name: "Huile à barbe", meta: "Stock 9", price: 22 },
+    { id: "p3", name: "Baume à barbe", meta: "Stock 11", price: 20 },
+    { id: "p4", name: "Pommade brillante", meta: "Stock 7", price: 19 },
+    { id: "p5", name: "Shampoing barbe", meta: "Stock 12", price: 16 },
+    { id: "p6", name: "Poudre texturisante", meta: "Stock 5", price: 17 },
+    { id: "p7", name: "Après-rasage", meta: "Stock 8", price: 21 },
+    { id: "p8", name: "Brosse à barbe", meta: "Stock 4", price: 24 },
+    { id: "p9", name: "Peigne en bois", meta: "Stock 15", price: 9 }
+  ]
+};
+const VAT = 0.20; // taux d'exemple ; en prod : taux par article
+
+const state = {
+  cat: "services",
+  q: "",
+  lines: [
+    { id: "s2", name: "Coupe + barbe", price: 38, qty: 1 },
+    { id: "p2", name: "Huile à barbe", price: 22, qty: 1 }
+  ]
+};
+
+const eur = n => n.toFixed(2).replace(".", ",") + " €";
+const short = n => (n % 1 === 0 ? String(n) : n.toFixed(2).replace(".", ",")) + " €";
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const ICON_CLOCK = '<svg class="ico" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+const ICON_TRASH = '<svg class="ico" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>';
+const ICON_MINUS = '<svg class="ico" width="16" height="16" viewBox="0 0 24 24" stroke-width="2.2" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+const ICON_PLUS = '<svg class="ico" width="16" height="16" viewBox="0 0 24 24" stroke-width="2.2" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+const ICON_SCISSORS = '<svg class="ico" width="40" height="40" viewBox="0 0 24 24" stroke="#B5B5B5" stroke-width="1.5" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>';
+
+function qtyOf(id) { const l = state.lines.find(x => x.id === id); return l ? l.qty : 0; }
+
+function addItem(it) {
+  const l = state.lines.find(x => x.id === it.id);
+  if (l) l.qty++; else state.lines.push({ id: it.id, name: it.name, price: it.price, qty: 1 });
+  render();
+}
+function changeQty(id, d) {
+  const l = state.lines.find(x => x.id === id);
+  if (!l) return;
+  l.qty += d;
+  if (l.qty <= 0) state.lines = state.lines.filter(x => x.id !== id);
+  render();
+}
+
+function renderList() {
+  const isSvc = state.cat === "services";
+  const src = CATALOG[state.cat];
+  document.getElementById("cat-title").textContent = isSvc ? "Services" : "Produits";
+  document.getElementById("cat-count").textContent = isSvc ? src.length + " prestations" : src.length + " produits en vente";
+  document.querySelectorAll(".cat-btn").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.cat === state.cat)));
+
+  const q = state.q.trim().toLowerCase();
+  const items = src.filter(it => !q || it.name.toLowerCase().includes(q));
+  const grid = document.getElementById("grid");
+  grid.innerHTML = items.map(it => {
+    const n = qtyOf(it.id);
+    return `<button type="button" class="card${n ? " in-ticket" : ""}" data-id="${it.id}">
+      <span class="card-name">${esc(it.name)}</span>
+      <span class="card-foot">
+        <span class="card-meta">${isSvc ? ICON_CLOCK : ""}${esc(it.meta)}</span>
+        <span class="card-price">${short(it.price)}</span>
+      </span>
+      ${n ? `<span class="badge" aria-label="Quantité dans le ticket">${n}</span>` : ""}
+    </button>`;
+  }).join("");
+  grid.querySelectorAll(".card").forEach(b => b.addEventListener("click", () => addItem(src.find(x => x.id === b.dataset.id))));
+
+  const nr = document.getElementById("no-results");
+  nr.hidden = items.length > 0;
+  nr.textContent = `Aucun article ne correspond à « ${state.q} ».`;
+}
+
+function renderTicket() {
+  const box = document.getElementById("lines");
+  if (!state.lines.length) {
+    box.innerHTML = `<div class="ticket-empty">${ICON_SCISSORS}<strong>Ticket vide</strong><span>Touchez un service ou un produit pour l’ajouter.</span></div>`;
+  } else {
+    box.innerHTML = state.lines.map(l => `
+      <div class="line">
+        <div class="line-info"><span class="line-name">${esc(l.name)}</span><span class="line-unit">${eur(l.price)} × ${l.qty}</span></div>
+        <div class="stepper">
+          <button type="button" data-dec="${l.id}" aria-label="${l.qty === 1 ? "Retirer " + esc(l.name) : "Diminuer la quantité"}">${l.qty === 1 ? ICON_TRASH : ICON_MINUS}</button>
+          <span>${l.qty}</span>
+          <button type="button" data-inc="${l.id}" aria-label="Augmenter la quantité">${ICON_PLUS}</button>
+        </div>
+        <span class="line-total">${eur(l.price * l.qty)}</span>
+      </div>`).join("");
+    box.querySelectorAll("[data-dec]").forEach(b => b.addEventListener("click", () => changeQty(b.dataset.dec, -1)));
+    box.querySelectorAll("[data-inc]").forEach(b => b.addEventListener("click", () => changeQty(b.dataset.inc, 1)));
+  }
+  const total = state.lines.reduce((s, l) => s + l.price * l.qty, 0);
+  const count = state.lines.reduce((s, l) => s + l.qty, 0);
+  const ht = total / (1 + VAT);
+  document.getElementById("t-count").textContent = count + (count > 1 ? " articles" : " article");
+  document.getElementById("t-ht").textContent = `HT ${eur(ht)} · TVA ${eur(total - ht)}`;
+  document.getElementById("t-total").textContent = eur(total);
+}
+
+function render() { renderList(); renderTicket(); }
+
+document.querySelectorAll(".cat-btn").forEach(b => b.addEventListener("click", () => {
+  state.cat = b.dataset.cat; state.q = ""; document.getElementById("q").value = ""; render();
+}));
+document.getElementById("q").addEventListener("input", e => { state.q = e.target.value; renderList(); });
+document.getElementById("pay").addEventListener("click", () => { state.lines = []; render(); });
+
+render();
+</script>
+</body>
+</html>

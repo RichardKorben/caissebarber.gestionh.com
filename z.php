@@ -44,6 +44,7 @@ $date = static fn (string $v): string => substr($v, 8, 2) . '/' . substr($v, 5, 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
+    <?= BarberPay\icones_tete(false) ?>
     <title><?= e($titres[$c['type']] ?? 'Clôture') ?> n° <?= (int) $c['numero'] ?></title>
     <link rel="stylesheet" href="/public/css/ticket.css?v=<?= e(BarberPay\VERSION) ?>">
 </head>

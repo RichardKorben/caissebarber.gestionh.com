@@ -25,6 +25,7 @@ function bp_page_erreur(int $code, string $titre, string $message): never
     $titre = BarberPay\e($titre);
     $message = BarberPay\e($message);
     echo "<!doctype html><html lang=\"fr\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+        . BarberPay\icones_tete(false)
         . "<title>{$titre} — BarberPay</title><link rel=\"stylesheet\" href=\"/public/css/barberpay.css\"></head>"
         . "<body class=\"page-centre\"><main class=\"carte-message\"><h1>{$titre}</h1><p>{$message}</p></main></body></html>";
     exit;

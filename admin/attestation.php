@@ -25,6 +25,7 @@ $adresseClient = trim(($p['adresse'] ?? '') . ', ' . ($p['code_postal'] ?? '') .
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
+    <?= BarberPay\icones_tete(false) ?>
     <title>Attestation — <?= e($editeur['logiciel']) ?> — <?= e($client) ?></title>
     <link rel="stylesheet" href="/public/css/attestation.css?v=<?= e(BarberPay\VERSION) ?>">
 </head>

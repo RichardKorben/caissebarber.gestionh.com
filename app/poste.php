@@ -47,6 +47,7 @@ function poste_haut(string $titre, string $actif): void
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
     <meta name="csrf" content="<?= e(Csrf::jeton()) ?>">
+    <?= BarberPay\icones_tete() ?>
     <title><?= e($titre) ?> — <?= e($tenant->nomSalon) ?></title>
     <link rel="stylesheet" href="/public/css/barberpay.css?v=<?= e(BarberPay\VERSION) ?>">
     <link rel="stylesheet" href="/public/css/admin.css?v=<?= e(BarberPay\VERSION) ?>">
@@ -57,11 +58,8 @@ function poste_haut(string $titre, string $actif): void
 <div class="admin-cadre">
     <nav class="barre-laterale" aria-label="Poste de caisse">
         <a class="logo-lien" href="/" aria-label="Retour à la caisse">
-            <span class="logo-poteau" aria-hidden="true">
-                <span class="poteau-dome"></span><span class="poteau-embout"></span>
-                <span class="poteau-cylindre"></span><span class="poteau-embout"></span>
-            </span>
-            <span class="marque">BARBER</span>
+            <?= BarberPay\embleme() ?>
+            <?= BarberPay\logotype() ?>
         </a>
         <ul class="nav-principale">
             <?php foreach ($liens as $cle => [$url, $libelle, $icone]): ?>

@@ -94,7 +94,7 @@ function icone(string $nom, int $taille = 24): string
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="robots" content="noindex">
     <meta name="csrf" content="<?= e(Csrf::jeton()) ?>">
-    <meta name="theme-color" content="#0A0A0A">
+    <?= BarberPay\icones_tete() ?>
     <title>Caisse — <?= e($tenant->nomSalon) ?></title>
     <link rel="stylesheet" href="/public/css/barberpay.css?v=<?= e(BarberPay\VERSION) ?>">
     <link rel="stylesheet" href="/public/css/caisse.css?v=<?= e(BarberPay\VERSION) ?>">
@@ -107,10 +107,8 @@ function icone(string $nom, int $taille = 24): string
     <!-- 1. Barre latérale -->
     <nav class="barre" aria-label="Caisse">
         <div class="logo" aria-hidden="true">
-            <span class="poteau-dome"></span><span class="poteau-embout"></span>
-            <span class="poteau-cylindre<?= $animation ? ' poteau-anime' : '' ?>"></span>
-            <span class="poteau-embout"></span>
-            <span class="marque">BARBER</span>
+            <?= BarberPay\embleme(false, $animation) ?>
+            <?= BarberPay\logotype() ?>
         </div>
         <div class="categories">
             <button type="button" class="bouton-categorie" data-categorie="service" aria-pressed="true"><?= icone('ciseaux', 26) ?><span>Services</span></button>
@@ -167,7 +165,7 @@ function icone(string $nom, int $taille = 24): string
             </div>
             <footer class="ticket-pied">
                 <div class="pied-boutons">
-                    <button type="button" class="bouton-clair" data-action="paiement-partiel"><?= icone('carte', 20) ?>Paiement partiel</button>
+                    <button type="button" class="bouton-clair" data-action="paiement-partiel"><?= icone('carte', 20) ?>Partiel</button>
                     <button type="button" class="bouton-clair" data-action="remise-ticket" id="bouton-remise"><?= icone('remise', 20) ?>Remise</button>
                 </div>
                 <div class="bloc-total">
@@ -193,9 +191,7 @@ function icone(string $nom, int $taille = 24): string
 <div class="verrou" id="verrou" hidden role="dialog" aria-modal="true" aria-labelledby="verrou-titre">
     <div class="verrou-boite">
         <div class="logo" aria-hidden="true">
-            <span class="poteau-dome"></span><span class="poteau-embout"></span>
-            <span class="poteau-cylindre<?= $animation ? ' poteau-anime' : '' ?>"></span>
-            <span class="poteau-embout"></span>
+            <?= BarberPay\embleme(true, $animation) ?>
         </div>
         <h2 id="verrou-titre"><?= e($tenant->nomSalon) ?></h2>
         <p class="verrou-consigne" id="verrou-consigne">Qui est à la caisse ?</p>

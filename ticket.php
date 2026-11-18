@@ -58,6 +58,7 @@ $libelleRemise = static fn (?string $type, ?int $valeur): string => $type === 'p
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
+    <?= BarberPay\icones_tete(false) ?>
     <title>Ticket n° <?= e(Ventes::numeroAffiche((int) $ticket['numero'])) ?> — <?= e((string) ($salon['nom_salon'] ?? '')) ?></title>
     <link rel="stylesheet" href="/public/css/ticket.css?v=<?= e(BarberPay\VERSION) ?>">
 </head>

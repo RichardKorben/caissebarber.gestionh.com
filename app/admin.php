@@ -73,6 +73,7 @@ function admin_haut(string $titre, string $actif): void
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
+    <?= BarberPay\icones_tete() ?>
     <title><?= e($titre) ?> — Admin — <?= e($tenant->nomSalon) ?></title>
     <link rel="stylesheet" href="/public/css/barberpay.css?v=<?= e(BarberPay\VERSION) ?>">
     <link rel="stylesheet" href="/public/css/admin.css?v=<?= e(BarberPay\VERSION) ?>">
@@ -82,10 +83,7 @@ function admin_haut(string $titre, string $actif): void
 <div class="admin-cadre">
     <nav class="barre-laterale" aria-label="Administration">
         <a class="logo-lien" href="/" aria-label="Retour à la caisse">
-            <span class="logo-poteau" aria-hidden="true">
-                <span class="poteau-dome"></span><span class="poteau-embout"></span>
-                <span class="poteau-cylindre"></span><span class="poteau-embout"></span>
-            </span>
+            <?= BarberPay\embleme() ?>
             <span class="marque">ADMIN</span>
         </a>
         <ul class="nav-principale">
