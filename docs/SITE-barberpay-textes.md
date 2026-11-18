@@ -1,6 +1,6 @@
 # Site barberpay.fr — textes des pages (brouillon v2)
 
-> Rédigé le 18/11/2026, **avant tout code**, pour relecture du fond.
+> Rédigé le 18/11/2026 pour relecture du fond. **Le site est codé** dans `/var/www/barberpay.fr` (dépôt séparé) : ce document reste la référence des textes.
 > Ton : **tutoiement**, phrases courtes, vocabulaire de salon (pas de jargon comptable sans explication).
 > Les passages entre **[À COMPLÉTER]** sont des informations qui manquent encore.
 > Les pages légales (CGU, confidentialité) sont des **plans** : à faire relire par un juriste avant la mise en ligne.
@@ -502,6 +502,6 @@ IONOS SARL — 7 place de la Gare, BP 70109, 57200 Sarreguemines Cedex — Franc
 2. ~~E-mail de contact~~ → **contact@kdsoft.fr** (validé le 18/11/2026). Délai de réponse : 48 h ouvrées (validé le 18/11/2026).
 3. Mentions légales : ville du greffe (RCS) à confirmer ; coordonnées d'IONOS à recopier du contrat. Directeur de publication (Loic PAPON) validé le 18/11/2026.
 4. ~~Lieu d'hébergement~~ → **IONOS, France** (validé le 18/11/2026). Vérifier dans l'espace IONOS que le serveur est bien dans un centre de données en France, puisque la FAQ l'affirme.
-5. E-reporting : périodicité pour les micro-entreprises, texte officiel à citer.
-6. Portée de l'attestation par rapport au certificat : à confirmer.
+5. ~~E-reporting~~ → vérifié le 18/11/2026 dans la FAQ officielle impots.gouv.fr « Je découvre la facturation électronique » (version du 01/09/2026) : en franchise en base, transmission **tous les deux mois** (réel normal mensuel : trois fois par mois) ; montant total des opérations par jour ; par une plateforme agréée ; pas besoin d'acheter un logiciel (Q. 7.1, 8.1, 9.1 à 9.3).
+6. ~~Portée de l'attestation~~ → vérifié le 18/11/2026 dans le BOFiP BOI-TVA-DECLA-30-10-30 (version du 25/03/2026) : « mode de preuve alternatif : un seul de ces deux documents (certificat ou attestation individuelle) suffit ». À surveiller : l'article 286 du CGI a une nouvelle version depuis le 27/06/2026 (contenu non vérifié).
 7. Relecture juridique des CGU, de la confidentialité et du contrat de sous-traitance.
